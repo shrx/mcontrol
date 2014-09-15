@@ -33,11 +33,11 @@ private:
 class SimulatedSensor : public Sensor
 {
 public:
-   SimulatedSensor(SimulatedMotor& driver);
+   SimulatedSensor(SimulatedMotor* driver);
    float getRawAngle();
 
 private:
-   SimulatedMotor& motor;
+   SimulatedMotor* motor;
    std::mt19937_64 generator;
    std::normal_distribution<float> normdist{0.0, 0.1};
 };

@@ -75,10 +75,10 @@ float SimulatedMotor::currentAngle()
 }
 
 
-SimulatedSensor::SimulatedSensor(SimulatedMotor& driver) : motor(driver)
+SimulatedSensor::SimulatedSensor(SimulatedMotor* driver) : motor(driver)
 {}
 
 float SimulatedSensor::getRawAngle()
 {
-   return mod360(motor.currentAngle() + normdist(generator));
+   return mod360(motor->currentAngle() + normdist(generator));
 }

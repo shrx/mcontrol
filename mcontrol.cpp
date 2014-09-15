@@ -6,6 +6,11 @@
 #include <tclap/CmdLine.h>
 #include "simulated.h"
 
+#ifdef HARDWARE
+#include <wiringPi.h>
+#include "hardware.h"
+#endif
+
 
 // params
 const float accelAngle = 20.0;
@@ -89,14 +94,16 @@ int main(int argc, char *argv[])
    cmd.parse(argc, argv);
    
    // setup
-
-   /// SIMULATOR ///
-   SimulatedMotor simm(50);
-   SimulatedSensor sims(simm);
-   ///
+#ifdef HARDWARE
+   wiringPiSetup();
+   // TODO: and possibly other stuff required for wiringPi
    
-   motor = &simm;
-   sensor = &sims;
+   motor = new HardwareMotor(1, 2, 3); // TODO: pin numbers
+   sensor = new HardwareSensor;
+#else
+   motor = new SimulatedMotor(50);
+   sensor = new SimulatedSensor(dynamic_cast<SimulatedMotor*>(motor));
+#endif
 
    motor->invertPolarity(invertMotorPolarity ^ invertSystemPolarity);
    sensor->invertPolarity(invertSystemPolarity);
