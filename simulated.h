@@ -8,7 +8,7 @@
 class SimulatedMotor : public Motor
 {
 public:
-   SimulatedMotor(float initialAngle = 0);
+   SimulatedMotor(float relativeInitialAngle = 0);
    void turnOff();
    void setPWM(unsigned short duty);
    float currentAngle();
@@ -23,10 +23,11 @@ private:
    float internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
    
-   const unsigned short minimum_duty = 10;
-   const unsigned short maximum_duty = 100;
-   const float minimum_angle = -20;
-   const float maximum_angle = 380;
+   const unsigned short minimum_duty = 15;
+   const unsigned short maximum_duty = 30;
+   const float initialAngle = 250;
+   const float minimum_angle = initialAngle - 20;
+   const float maximum_angle = initialAngle - 40 + 360;
    const float rpm_capability = 10.0 / 6.0;
 };
 

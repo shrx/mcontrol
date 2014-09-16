@@ -14,8 +14,8 @@
 
 // params
 const float accelAngle = 20.0;
-const unsigned short minDuty = 10;
-const unsigned short maxDuty = 100;
+const unsigned short minDuty = 15;
+const unsigned short maxDuty = 30;
 const bool invertMotorPolarity = false;
 const bool invertSystemPolarity = false;
 const float zeroPosition = 0;

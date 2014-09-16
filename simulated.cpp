@@ -2,8 +2,10 @@
 #include <ratio>
 #include "simulated.h"
 
-SimulatedMotor::SimulatedMotor(float initialAngle) :
-   internalAngle(initialAngle) {}
+SimulatedMotor::SimulatedMotor(float relativeInitialAngle)
+{
+  internalAngle = initialAngle + relativeInitialAngle;
+}
 
 void SimulatedMotor::turnOnDir1()
 {
@@ -57,12 +59,18 @@ void SimulatedMotor::event()
       internalAngle += 360.0 * (rpm * elapsedMin * rotating);
       
       if (internalAngle < minimum_angle)
-         std::cerr << "motor: WARNING: movement past minimum safe angle ("
+      {
+         std::cerr << "motor: WARNING: safety switch engaged @ mininum ("
                    << internalAngle << " < " << minimum_angle << ")\n";
+         internalAngle = minimum_angle;
+      }
 
       if (internalAngle > maximum_angle)
-         std::cerr << "motor: WARNING: movement past maximum safe angle ("
+      {
+         std::cerr << "motor: WARNING: safety switch engaged @ maximum ("
                    << internalAngle << " > " << maximum_angle << ")\n";
+         internalAngle = maximum_angle;
+      }
    }
    
    lastEvent = std::chrono::steady_clock::now();
