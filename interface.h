@@ -1,17 +1,12 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include "angles.h"
+
 class Sensor
 {
 public:
-   virtual float getRawAngle() = 0;
-   float getCookedAngle();
-   void setZeroPosition(float rawAngleAtZero);
-   void invertPolarity(bool invert);
-
-protected:
-   float zeroPosition = 0;
-   bool inverted = false;
+   virtual RawAngle getRawAngle() = 0;
 };
 
 
@@ -29,7 +24,5 @@ protected:
    virtual void turnOnDir2() = 0;
    bool inverted = false;
 };
-
-float mod360(float value);
 
 #endif // INTERFACE_H

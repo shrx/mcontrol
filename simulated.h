@@ -35,7 +35,7 @@ class SimulatedSensor : public Sensor
 {
 public:
    SimulatedSensor(SimulatedMotor* driver);
-   float getRawAngle();
+   RawAngle getRawAngle();
 
 private:
    SimulatedMotor* motor;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ratio>
 #include "simulated.h"
+#include "angles.h"
 
 SimulatedMotor::SimulatedMotor(float relativeInitialAngle)
 {
@@ -86,7 +87,7 @@ float SimulatedMotor::currentAngle()
 SimulatedSensor::SimulatedSensor(SimulatedMotor* driver) : motor(driver)
 {}
 
-float SimulatedSensor::getRawAngle()
+RawAngle SimulatedSensor::getRawAngle()
 {
-   return mod360(motor->currentAngle() + normdist(generator));
+   return RawAngle(mod360(motor->currentAngle() + normdist(generator)));
 }
