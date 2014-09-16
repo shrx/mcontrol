@@ -32,7 +32,7 @@ void HardwareMotor::setPWM(unsigned short duty)
    // TODO: set PWM duty cycle
 }
 
-float HardwareSensor::getRawAngle()
+RawAngle HardwareSensor::getRawAngle()
 {
    // TODO: read value via SPI
 }

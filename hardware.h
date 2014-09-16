@@ -23,7 +23,7 @@ protected:
 class HardwareSensor : public Sensor
 {
 public:
-   virtual float getRawAngle();
+   virtual RawAngle getRawAngle();
 };
 
 #endif // HARDWARE_H
