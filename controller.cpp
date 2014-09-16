@@ -3,15 +3,33 @@
 #include <thread>
 #include "controller.h"
 
+#ifdef HARDWARE
+   #include <wiringPi.h>
+   #include <wiringPiSPI.h>
+   #include "hardware.h"
+#else
+   #include "simulated.h"
+#endif
+
 Controller::Controller(ControllerParams initialParams) :
    params(initialParams)
 {
    // setup
 #ifdef HARDWARE
-   wiringPiSetup();
-   // TODO: and possibly other stuff required for wiringPi
+   if (wiringPiSetup() == -1)
+   {
+      perror("wiringPiSetup");
+      exit(2);
+   }
+
+   int fd = wiringPiSPISetupWithMode(0, 500000, SPI_MODE_1);
+   if (fd == -1)
+   {
+      perror("wiringPiSPISetupWithMode");
+      exit(2);
+   }
    
-   motor = new HardwareMotor(1, 2, 3); // TODO: pin numbers
+   motor = new HardwareMotor(4, 5, 1);
    sensor = new HardwareSensor;
 #else
    motor = new SimulatedMotor(30);

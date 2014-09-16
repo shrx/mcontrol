@@ -3,13 +3,7 @@
 
 #include <chrono>
 #include "angles.h"
-
-#ifdef HARDWARE
-#include <wiringPi.h>
-#include "hardware.h"
-#else
-#include "simulated.h"
-#endif
+#include "interface.h"
 
 struct ControllerParams
 {
