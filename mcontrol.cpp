@@ -37,7 +37,10 @@ int main(int argc, char *argv[])
    Controller controller(cparams);
 
    if (arg_targetAngle.isSet())
-      controller.slew(arg_targetAngle.getValue());
+   {
+      auto targetAngle = UserAngle(arg_targetAngle.getValue());
+      controller.slew(CookedAngle(targetAngle));
+   }
    else
    {
       float angle;

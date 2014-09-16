@@ -13,8 +13,8 @@ ControllerParams cparams = [] {
    UserAngle::userOrigin = CookedAngle(20);
 
    // angle parameters
-   cparams.minimumSafeAngle = 335; // cooked angle
-   cparams.maximumSafeAngle = 315; // cooked angle
+   cparams.minimumSafeAngle = CookedAngle(335);
+   cparams.maximumSafeAngle = CookedAngle(315);
    cparams.tolerance = 0.1;
 
    // control loop parameters
