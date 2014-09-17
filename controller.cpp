@@ -75,9 +75,9 @@ void Controller::slew(CookedAngle targetAngle)
    const float dutySpan = params.maxDuty - params.minDuty;
 
    CookedAngle initialAngle = getCookedAngle();
-   float sense = (targetAngle.val > initialAngle.val ? 1.0 : -1.0);
+   float direction = (targetAngle.val > initialAngle.val ? 1.0 : -1.0);
 
-   if (sense > 0)
+   if (direction > 0)
       motor->turnOnDirPositive();
    else
       motor->turnOnDirNegative();
@@ -86,8 +86,8 @@ void Controller::slew(CookedAngle targetAngle)
    {
       CookedAngle angle = getCookedAngle();
       std::cout << "angle " << UserAngle(angle).val << std::endl;
-      float diffInitial = sense * (angle - initialAngle);
-      float diffTarget = sense * (targetAngle - angle);
+      float diffInitial = direction * (angle - initialAngle);
+      float diffTarget = direction * (targetAngle - angle);
       
       if (diffTarget < params.tolerance)
       {
