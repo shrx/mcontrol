@@ -82,6 +82,7 @@ void Controller::slew(CookedAngle targetAngle)
    else
       motor->turnOnDirNegative();
    
+   beginStallCheck(initialAngle);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
@@ -104,8 +105,37 @@ void Controller::slew(CookedAngle targetAngle)
          duty = params.maxDuty;
       
       motor->setPWM(round(duty));
+
+      if (isStalled(angle))
+      {
+         std::cerr << "stall detected" << std::endl;
+         break;
+      }
+
       std::this_thread::sleep_for(params.loopDelay);
    }
    
    motor->turnOff();
+}
+
+
+void Controller::beginStallCheck(CookedAngle currentAngle)
+{
+   stallCheckAngle = currentAngle;
+   stallCheckTime = std::chrono::steady_clock::now();
+}
+
+bool Controller::isStalled(CookedAngle currentAngle)
+{
+   bool result = false;
+   auto currentTime = std::chrono::steady_clock::now();
+   if (currentTime >= stallCheckTime + params.stallCheckPeriod)
+   {
+      if (abs(currentAngle - stallCheckAngle) < params.stallThreshold)
+         result = true;
+
+      stallCheckAngle = currentAngle;
+      stallCheckTime = currentTime;
+   }
+   return result;
 }

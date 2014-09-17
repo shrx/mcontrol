@@ -42,7 +42,7 @@ void SimulatedMotor::setPWM(unsigned short duty)
 
    std::cerr << "motor: PWM set to " << duty << "\n";
    if (duty > 0 && duty < minimum_duty)
-      std::cerr << "motor: WARNING: stalled!";
+      std::cerr << "motor: WARNING: stalled!\n";
 }
 
 void SimulatedMotor::event()

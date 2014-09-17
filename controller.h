@@ -9,9 +9,11 @@ struct ControllerParams
 {
     // motor parameters
    degrees accelAngle = 20.0;
-   unsigned short minDuty = 0;
+   unsigned short minDuty = 10;
    unsigned short maxDuty = 100;
    bool invertMotorPolarity = false;
+   std::chrono::milliseconds stallCheckPeriod{1000};
+   degrees stallThreshold = 0;
 
    // angle parameters
    CookedAngle minimumSafeAngle{0};
@@ -35,9 +37,15 @@ public:
    void slew(CookedAngle targetAngle);
 
 private:
+   void beginStallCheck(CookedAngle currentAngle);
+   bool isStalled(CookedAngle currentAngle);
+
    ControllerParams params;
    Motor* motor;
    Sensor* sensor;
+
+   CookedAngle stallCheckAngle{0};
+   std::chrono::steady_clock::time_point stallCheckTime;
 };
 
 #endif // CONTROLLER_H

@@ -6,6 +6,8 @@ ControllerParams cparams = [] {
    cparams.minDuty = 15;
    cparams.maxDuty = 30;
    cparams.invertMotorPolarity = false;
+   cparams.stallCheckPeriod = std::chrono::milliseconds(3000);
+   cparams.stallThreshold = 1.0;
 
    // angle conversions
    CookedAngle::hardwareOrigin = RawAngle(250 - 20);
