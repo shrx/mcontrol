@@ -35,8 +35,15 @@ public:
 };
 
 
-/* A general angle type with a float storage and a few operators. */
+/* A general angle class.
+ *
+ * We use a template to keep all operators in one place but prevent
+ * operations between incompatible derived angle types. I.e. calculating
+ * (UserAngle(float) - CookedAngle(float)) makes no sense and should
+ * therefore throw a compile-time error.
+*/
 
+template <class DerivedAngle>
 class Angle
 {
 public:
@@ -44,19 +51,19 @@ public:
    explicit Angle(float value) : val(value) {}
 
    // comparison operators
-   inline bool operator>(const Angle& other) { return val > other.val; }
-   inline bool operator<(const Angle& other) { return val < other.val; }
-   inline bool operator>=(const Angle& other) { return val >= other.val; }
-   inline bool operator<=(const Angle& other) { return val <= other.val; }
+   inline bool operator>(const DerivedAngle& other) { return val > other.val; }
+   inline bool operator<(const DerivedAngle& other) { return val < other.val; }
+   inline bool operator>=(const DerivedAngle& other) { return val >= other.val; }
+   inline bool operator<=(const DerivedAngle& other) { return val <= other.val; }
 
    // difference between two angles is an ordinary float value
-   inline float operator-(const Angle& other) { return val - other.val; }
+   inline float operator-(const DerivedAngle& other) { return val - other.val; }
 
    float val;
 };
 
 
-class CookedAngle : public Angle
+class CookedAngle : public Angle<CookedAngle>
 {
 public:
    explicit CookedAngle(float value) : Angle(value) {};
@@ -68,7 +75,7 @@ public:
 };
 
 
-class UserAngle : public Angle
+class UserAngle : public Angle<UserAngle>
 {
 public:
    explicit UserAngle(float value) : Angle(value) {};
