@@ -7,6 +7,9 @@
 
 struct ControllerParams
 {
+   ControllerParams() = default;
+   ControllerParams(const char* filename);
+
     // motor parameters
    degrees accelAngle = 20.0;
    unsigned short minDuty = 10;

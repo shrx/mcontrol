@@ -1,10 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <tclap/CmdLine.h>
+#include <libconfig.h++>
 #include "controller.h"
-
-extern ControllerParams cparams;
-
 
 class TCLAPangleConstraint : public TCLAP::Constraint<degrees>
 {
@@ -34,6 +32,36 @@ int main(int argc, char *argv[])
    cmd.xorAdd(xorArgs);
    cmd.parse(argc, argv);
    
+   ControllerParams cparams;
+   const char* configFilename = "mcontrol.conf";
+
+   try
+   {
+      cparams = ControllerParams(configFilename);
+   }
+   catch (libconfig::FileIOException& e)
+   {
+      std::cerr << "config file: could not read '" << configFilename << "'\n";
+      exit(1);
+   }
+   catch (libconfig::ParseException& e)
+   {
+      std::cerr << "config file: error parsing '" << e.getFile()
+                << "', line " << e.getLine()
+                << ": " << e.getError() << std::endl;
+      exit(1);
+   }
+   catch (libconfig::SettingTypeException& e)
+   {
+      std::cerr << "config file: wrong argument type for setting '" << e.getPath() << "'\n";
+      exit(1);
+   }
+   catch (libconfig::SettingNotFoundException& e)
+   {
+      std::cerr << "config file: could not find setting '" << e.getPath() << "'\n";
+      exit(1);
+   }
+
    Controller controller(cparams);
 
    if (arg_targetAngle.isSet())

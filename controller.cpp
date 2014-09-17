@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
+#include <libconfig.h++>
 #include "controller.h"
 
 #ifdef HARDWARE
@@ -10,6 +11,38 @@
 #else
    #include "simulated.h"
 #endif
+
+ControllerParams::ControllerParams(const char* filename)
+{
+   libconfig::Config config;
+   config.readFile(filename);
+   config.setAutoConvert(true);
+
+   // motor
+   accelAngle = config.lookup("movement.accelAngle");
+   minDuty = (unsigned int)config.lookup("motor.minDuty");
+   maxDuty = (unsigned int)config.lookup("motor.maxDuty");
+   invertMotorPolarity = config.lookup("motor.invertPolarity");
+   stallCheckPeriod =
+      std::chrono::milliseconds((unsigned int)config.lookup("motor.stallCheckPeriod"));
+   stallThreshold = config.lookup("motor.stallThreshold");
+
+   // angle conversions
+   CookedAngle::hardwareOrigin = RawAngle(config.lookup("angles.hardwareOrigin_raw"));
+   CookedAngle::inverted = config.lookup("sensor.invert");
+   UserAngle::userOrigin = CookedAngle(config.lookup("angles.userOrigin_cooked"));
+
+   // angle parameters
+   minimumSafeAngle =
+      CookedAngle(config.lookup("movement.minSafeAngle_cooked"));
+   maximumSafeAngle =
+      CookedAngle(config.lookup("movement.maxSafeAngle_cooked"));
+   tolerance = config.lookup("movement.tolerance");
+
+   // control loop parameters
+   loopDelay = std::chrono::milliseconds(10);
+}
+
 
 Controller::Controller(ControllerParams initialParams) :
    params(initialParams)

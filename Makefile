@@ -1,6 +1,6 @@
-CXXFLAGS = -std=c++11 -Wall
+CXXFLAGS = -std=c++11 -Wall -lconfig++
 
-OBJECTS = interface.o simulated.o controller.o angles.o defaults.o mcontrol.o 
+OBJECTS = interface.o simulated.o controller.o angles.o mcontrol.o
 
 #CPPFLAGS += -DHARDWARE -I/home/andrej/src/wiringPi/wiringPi
 #CXXFLAGS += -L/home/andrej/src/wiringPi/wiringPi -lwiringPi
