@@ -8,7 +8,7 @@
 struct ControllerParams
 {
     // motor parameters
-   float accelAngle = 20.0;
+   degrees accelAngle = 20.0;
    unsigned short minDuty = 0;
    unsigned short maxDuty = 100;
    bool invertMotorPolarity = false;
@@ -16,7 +16,7 @@ struct ControllerParams
    // angle parameters
    CookedAngle minimumSafeAngle{0};
    CookedAngle maximumSafeAngle{360};
-   float tolerance = 0.1;
+   degrees tolerance = 0.1;
    
    // control loop parameters
    std::chrono::milliseconds loopDelay{10};

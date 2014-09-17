@@ -8,10 +8,10 @@
 class SimulatedMotor : public Motor
 {
 public:
-   SimulatedMotor(float relativeInitialAngle = 0);
+   SimulatedMotor(degrees relativeInitialAngle = 0);
    void turnOff();
    void setPWM(unsigned short duty);
-   float currentAngle();
+   degrees currentAngle();
 
 private:
    void turnOnDir1();
@@ -20,14 +20,14 @@ private:
 
    int rotating = 0;
    int duty = 0;
-   float internalAngle;
+   degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
    
    const unsigned short minimum_duty = 15;
    const unsigned short maximum_duty = 30;
-   const float initialAngle = 250;
-   const float minimum_angle = initialAngle - 20;
-   const float maximum_angle = initialAngle - 40 + 360;
+   const degrees initialAngle = 250;
+   const degrees minimum_angle = initialAngle - 20;
+   const degrees maximum_angle = initialAngle - 40 + 360;
    const float rpm_capability = 10.0 / 6.0;
 };
 
@@ -40,7 +40,7 @@ public:
 private:
    SimulatedMotor* motor;
    std::mt19937_64 generator;
-   std::normal_distribution<float> normdist{0.0, 0.1};
+   std::normal_distribution<degrees> normdist{0.0, 0.1};
 };
 
 #endif // SIMULATED_H

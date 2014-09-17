@@ -86,8 +86,8 @@ void Controller::slew(CookedAngle targetAngle)
    {
       CookedAngle angle = getCookedAngle();
       std::cout << "angle " << UserAngle(angle).val << std::endl;
-      float diffInitial = direction * (angle - initialAngle);
-      float diffTarget = direction * (targetAngle - angle);
+      degrees diffInitial = direction * (angle - initialAngle);
+      degrees diffTarget = direction * (targetAngle - angle);
       
       if (diffTarget < params.tolerance)
       {

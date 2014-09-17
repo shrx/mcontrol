@@ -21,6 +21,7 @@ class RawAngle;
 class CookedAngle;
 class UserAngle;
 
+typedef float degrees;
 
 /* RawAngle is not a subclass of Angle (declared below) because it does not
  * represent a true angle due to the possible nonlinearities in the
@@ -30,8 +31,8 @@ class UserAngle;
 class RawAngle
 {
 public:
-   explicit RawAngle(float value) : val(value) {}
-   float val;
+   explicit RawAngle(degrees value) : val(value) {}
+   degrees val;
 };
 
 
@@ -39,7 +40,7 @@ public:
  *
  * We use a template to keep all operators in one place but prevent
  * operations between incompatible derived angle types. I.e. calculating
- * (UserAngle(float) - CookedAngle(float)) makes no sense and should
+ * (UserAngle(degrees) - CookedAngle(degrees)) makes no sense and should
  * therefore throw a compile-time error.
 */
 
@@ -48,7 +49,7 @@ class Angle
 {
 public:
    Angle() = default;
-   explicit Angle(float value) : val(value) {}
+   explicit Angle(degrees value) : val(value) {}
 
    // comparison operators
    inline bool operator>(const DerivedAngle& other) { return val > other.val; }
@@ -56,17 +57,17 @@ public:
    inline bool operator>=(const DerivedAngle& other) { return val >= other.val; }
    inline bool operator<=(const DerivedAngle& other) { return val <= other.val; }
 
-   // difference between two angles is an ordinary float value
-   inline float operator-(const DerivedAngle& other) { return val - other.val; }
+   // difference between two angles in degrees
+   inline degrees operator-(const DerivedAngle& other) { return val - other.val; }
 
-   float val;
+   degrees val;
 };
 
 
 class CookedAngle : public Angle<CookedAngle>
 {
 public:
-   explicit CookedAngle(float value) : Angle(value) {};
+   explicit CookedAngle(degrees value) : Angle(value) {};
    explicit CookedAngle(const RawAngle raw);
    explicit CookedAngle(const UserAngle user);
 
@@ -78,7 +79,7 @@ public:
 class UserAngle : public Angle<UserAngle>
 {
 public:
-   explicit UserAngle(float value) : Angle(value) {};
+   explicit UserAngle(degrees value) : Angle(value) {};
    explicit UserAngle(const CookedAngle cooked);
 
    static CookedAngle userOrigin;
@@ -87,6 +88,6 @@ public:
    friend class CookedAngle;
 };
 
-float mod360(float value);
+degrees mod360(degrees value);
 
 #endif // ANGLES_H

@@ -92,5 +92,5 @@ RawAngle HardwareSensor::getRawAngle()
    // Flush the command with a NOOP and record the reply.
    uint16_t angledata = sendReceive(CMD_NOOP);
 
-   return (float)(angledata & 0x3fff) * 360.0f / 0x3fff;
+   return (degrees)(angledata & 0x3fff) * 360.0f / 0x3fff;
 }

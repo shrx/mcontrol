@@ -6,12 +6,12 @@
 extern ControllerParams cparams;
 
 
-class TCLAPangleConstraint : public TCLAP::Constraint<float>
+class TCLAPangleConstraint : public TCLAP::Constraint<degrees>
 {
 public:
    std::string description() const { return "0 <= angle < 360"; }
    std::string shortID() const { return "angle"; }
-   bool check(const float& value) const { return (value >= 0 && value < 360); }
+   bool check(const degrees& value) const { return (value >= 0 && value < 360); }
 } angleConstraint;
 
 
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
    TCLAP::SwitchArg arg_queryAngle("q", "query-angle", "Query angle");
    TCLAP::SwitchArg arg_queryCookedAngle("c", "cooked-angle", "Query cooked angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
-   TCLAP::UnlabeledValueArg<float> arg_targetAngle(
+   TCLAP::UnlabeledValueArg<degrees> arg_targetAngle(
       "angle", "Slew to this angle", false, 0, &angleConstraint);
    
    auto xorArgs = std::vector<TCLAP::Arg*>{
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
    }
    else
    {
-      float angle;
+      degrees angle;
       if (arg_queryRawAngle.isSet())
          angle = controller.getRawAngle().val;
       else if (arg_queryCookedAngle.isSet())

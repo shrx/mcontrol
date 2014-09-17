@@ -3,7 +3,7 @@
 #include "simulated.h"
 #include "angles.h"
 
-SimulatedMotor::SimulatedMotor(float relativeInitialAngle)
+SimulatedMotor::SimulatedMotor(degrees relativeInitialAngle)
 {
   internalAngle = initialAngle + relativeInitialAngle;
 }
@@ -77,7 +77,7 @@ void SimulatedMotor::event()
    lastEvent = std::chrono::steady_clock::now();
 }
 
-float SimulatedMotor::currentAngle()
+degrees SimulatedMotor::currentAngle()
 {
    event();
    return internalAngle;

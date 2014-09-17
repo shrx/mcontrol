@@ -1,7 +1,7 @@
 #include <cmath>
 #include "angles.h"
 
-float mod360(float value)
+degrees mod360(degrees value)
 {
    return value - 360.0 * std::floor(value / 360.0);
 }
