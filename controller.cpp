@@ -82,7 +82,7 @@ void Controller::slew(CookedAngle targetAngle)
    else
       motor->turnOnDirNegative();
    
-   beginStallCheck(initialAngle);
+   beginMotorMonitoring(initialAngle);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
@@ -106,9 +106,15 @@ void Controller::slew(CookedAngle targetAngle)
       
       motor->setPWM(round(duty));
 
-      if (isStalled(angle))
+      MotorStatus status = checkMotor(angle, direction);
+      if (status == MotorStatus::Stalled)
       {
-         std::cerr << "stall detected" << std::endl;
+         std::cerr << "Stall detected!";
+         break;
+      }
+      else if (status == MotorStatus::WrongDirection)
+      {
+         std::cerr << "Motor turning in wrong direction!\n";
          break;
       }
 
@@ -119,23 +125,27 @@ void Controller::slew(CookedAngle targetAngle)
 }
 
 
-void Controller::beginStallCheck(CookedAngle currentAngle)
+void Controller::beginMotorMonitoring(CookedAngle currentAngle)
 {
    stallCheckAngle = currentAngle;
    stallCheckTime = std::chrono::steady_clock::now();
 }
 
-bool Controller::isStalled(CookedAngle currentAngle)
+Controller::MotorStatus Controller::checkMotor(CookedAngle currentAngle, float wantedDirection)
 {
-   bool result = false;
+   MotorStatus status = MotorStatus::OK;
+
    auto currentTime = std::chrono::steady_clock::now();
    if (currentTime >= stallCheckTime + params.stallCheckPeriod)
    {
-      if (abs(currentAngle - stallCheckAngle) < params.stallThreshold)
-         result = true;
+      auto difference = currentAngle - stallCheckAngle;
+      if (abs(difference) < params.stallThreshold)
+         status = MotorStatus::Stalled;
+      else if (std::signbit(difference) != std::signbit(wantedDirection))
+         status = MotorStatus::WrongDirection;
 
       stallCheckAngle = currentAngle;
       stallCheckTime = currentTime;
    }
-   return result;
+   return status;
 }

@@ -37,8 +37,10 @@ public:
    void slew(CookedAngle targetAngle);
 
 private:
-   void beginStallCheck(CookedAngle currentAngle);
-   bool isStalled(CookedAngle currentAngle);
+   enum class MotorStatus { OK, Stalled, WrongDirection };
+
+   void beginMotorMonitoring(CookedAngle currentAngle);
+   MotorStatus checkMotor(CookedAngle currentAngle, float wantedDirection);
 
    ControllerParams params;
    Motor* motor;
