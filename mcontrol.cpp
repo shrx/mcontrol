@@ -4,6 +4,12 @@
 #include <libconfig.h++>
 #include "controller.h"
 
+#ifndef CONFIG_FILE_PATH
+#define CONFIG_FILE_PATH "."
+#endif
+
+const char* configFilename = CONFIG_FILE_PATH "/mcontrol.conf";
+
 class TCLAPangleConstraint : public TCLAP::Constraint<degrees>
 {
 public:
@@ -33,7 +39,6 @@ int main(int argc, char *argv[])
    cmd.parse(argc, argv);
    
    ControllerParams cparams;
-   const char* configFilename = "mcontrol.conf";
 
    try
    {
