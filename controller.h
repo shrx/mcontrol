@@ -2,8 +2,18 @@
 #define CONTROLLER_H
 
 #include <chrono>
+#include <exception>
 #include "angles.h"
 #include "interface.h"
+
+class ConfigFileException : public std::exception
+{
+public:
+   ConfigFileException(const std::string& what) : message(what) {}
+   inline const char* what() { return message.c_str(); }
+   const std::string message;
+};
+
 
 struct ControllerParams
 {

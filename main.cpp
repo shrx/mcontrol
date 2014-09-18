@@ -66,6 +66,11 @@ int main(int argc, char *argv[])
       std::cerr << "config file: could not find setting '" << e.getPath() << "'\n";
       exit(1);
    }
+   catch (ConfigFileException& e)
+   {
+      std::cerr << "config file: " << e.message << "\n";
+      exit(1);
+   }
 
    Controller controller(cparams);
 

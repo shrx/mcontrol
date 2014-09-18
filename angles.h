@@ -1,6 +1,8 @@
 #ifndef ANGLES_H
 #define ANGLES_H
 
+#include <vector>
+
 /* Explanation: raw, cooked and user angles:
  *
  * Raw angles are readouts that come directly from the sensor. These lay in
@@ -70,8 +72,16 @@ public:
    explicit CookedAngle(degrees value) : Angle(value) {};
    explicit CookedAngle(const RawAngle raw);
    explicit CookedAngle(const UserAngle user);
+   static void setLinearization(const std::vector<float>& coefficients);
+   static void setOrigin(const RawAngle origin);
+   static void setInverted(const bool set);
 
+private:
+   static degrees linearize(degrees val);
+
+   static std::vector<float> linCoeffs;
    static RawAngle hardwareOrigin;
+   static degrees offset;
    static bool inverted;
 };
 
@@ -81,7 +91,9 @@ class UserAngle : public Angle<UserAngle>
 public:
    explicit UserAngle(degrees value) : Angle(value) {};
    explicit UserAngle(const CookedAngle cooked);
+   static void setOrigin(const CookedAngle origin);
 
+private:
    static CookedAngle userOrigin;
 
    // allow CookedAngle to access userOrigin

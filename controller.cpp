@@ -28,9 +28,20 @@ ControllerParams::ControllerParams(const char* filename)
    stallThreshold = config.lookup("motor.stallThreshold");
 
    // angle conversions
-   CookedAngle::hardwareOrigin = RawAngle(config.lookup("angles.hardwareOrigin_raw"));
-   CookedAngle::inverted = config.lookup("sensor.invert");
-   UserAngle::userOrigin = CookedAngle(config.lookup("angles.userOrigin_cooked"));
+   libconfig::Setting& linArray = config.lookup("angles.linearization");
+   if (!linArray.isArray())
+      throw ConfigFileException("angles.linearization must be an array");
+   if (linArray.getLength() % 2)
+      throw ConfigFileException("angles.linearization must contain an even number of values");
+      
+   std::vector<float> coeffs;
+   for (int i = 0; i < linArray.getLength(); i++)
+      coeffs.push_back(linArray[i]);
+
+   CookedAngle::setLinearization(coeffs);
+   CookedAngle::setOrigin(RawAngle(config.lookup("angles.hardwareOrigin_raw")));
+   CookedAngle::setInverted(config.lookup("sensor.invert"));
+   UserAngle::setOrigin(CookedAngle(config.lookup("angles.userOrigin_cooked")));
 
    // angle parameters
    minimumSafeAngle =
