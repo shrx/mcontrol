@@ -1,6 +1,6 @@
 CXXFLAGS = -std=c++11 -Wall -lconfig++
 
-OBJECTS = interface.o simulated.o controller.o angles.o mcontrol.o
+OBJECTS = interface.o simulated.o controller.o angles.o main.o
 
 ifdef HARDWARE
 	OBJECTS += hardware.o
