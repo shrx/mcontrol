@@ -12,6 +12,7 @@ public:
    void turnOff();
    void setPWM(unsigned short duty);
    degrees currentAngle();
+   void setVerbose(bool verbose);
 
 private:
    void turnOnDir1();
@@ -22,12 +23,13 @@ private:
    int duty = 0;
    degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
+   bool verbose = false;
    
    const unsigned short minimum_duty = 15;
    const unsigned short maximum_duty = 30;
    const degrees initialAngle = 250;
-   const degrees minimum_angle = initialAngle - 20;
-   const degrees maximum_angle = initialAngle - 40 + 360;
+   const degrees minimum_angle = 230;
+   const degrees maximum_angle = minimum_angle + 360 - 40;
    const float rpm_capability = 10.0 / 6.0;
 };
 

@@ -12,37 +12,68 @@ void SimulatedMotor::turnOnDir1()
 {
    event();
    rotating = 1;
-   std::cerr << "motor: Dir1\n";
+   if (verbose)
+     std::cerr << "motor: Dir1\n";
 }
 
 void SimulatedMotor::turnOnDir2()
 {
    event();
    rotating = -1;
-   std::cerr << "motor: Dir2\n";
+   if (verbose)
+      std::cerr << "motor: Dir2\n";
 }
 
 void SimulatedMotor::turnOff()
 {
    event();
    rotating = 0;
-   std::cerr << "motor: off\n";
+   if (verbose)
+      std::cerr << "motor: off\n";
 }
+
+class assertTrigger
+{
+public:
+   bool operator()(const bool state)
+   {
+      bool result = (oldState ? false : state);
+      oldState = state;
+      return result;
+   }
+
+   void operator()(const bool state, const std::string& message)
+   {
+      if (operator()(state))
+         std::cout << message;
+   }
+
+private:
+   bool oldState = false;
+};
 
 void SimulatedMotor::setPWM(unsigned short duty)
 {
-   if (duty > maximum_duty)
    {
-      std::cerr << "motor: ERROR: duty cycle exceeds maximum ("
-                << duty << " > " << maximum_duty << ")\n";
-      duty = maximum_duty;
+      static assertTrigger t;
+      if (t(duty > maximum_duty))
+         std::cerr << "motor: ERROR: duty cycle exceeds maximum ("
+                   << duty << " > " << maximum_duty << ")\n";
    }
+
+   if (duty > maximum_duty)
+      duty = maximum_duty;
+
    event();
    this->duty = duty;
 
-   std::cerr << "motor: PWM set to " << duty << "\n";
-   if (duty > 0 && duty < minimum_duty)
-      std::cerr << "motor: WARNING: stalled!\n";
+   if (verbose)
+      std::cerr << "motor: PWM set to " << duty << "\n";
+
+   {
+      static assertTrigger t;
+      t(duty > 0 && duty < minimum_duty, "motor: WARNING: stalled!\n");
+   }
 }
 
 void SimulatedMotor::event()
@@ -59,19 +90,27 @@ void SimulatedMotor::event()
       auto elapsedMin = duration_cast<duration<float,ratio<60,1>>>(currentTime - lastEvent).count();
       internalAngle += 360.0 * (rpm * elapsedMin * rotating);
       
+      {
+         static assertTrigger t;
+         if (t(internalAngle < minimum_angle))
+         {
+            std::cerr << "motor: WARNING: safety switch engaged @ mininum ("
+                      << internalAngle << " < " << minimum_angle << ")\n";
+         }
+      }
       if (internalAngle < minimum_angle)
-      {
-         std::cerr << "motor: WARNING: safety switch engaged @ mininum ("
-                   << internalAngle << " < " << minimum_angle << ")\n";
          internalAngle = minimum_angle;
-      }
 
-      if (internalAngle > maximum_angle)
       {
-         std::cerr << "motor: WARNING: safety switch engaged @ maximum ("
-                   << internalAngle << " > " << maximum_angle << ")\n";
-         internalAngle = maximum_angle;
+      static assertTrigger t;
+         if (t(internalAngle > maximum_angle))
+         {
+            std::cerr << "motor: WARNING: safety switch engaged @ maximum ("
+                      << internalAngle << " > " << maximum_angle << ")\n";
+         }
       }
+      if (internalAngle > maximum_angle)
+         internalAngle = maximum_angle;
    }
    
    lastEvent = std::chrono::steady_clock::now();
@@ -81,6 +120,11 @@ degrees SimulatedMotor::currentAngle()
 {
    event();
    return internalAngle;
+}
+
+void SimulatedMotor::setVerbose(const bool verbose_)
+{
+   verbose = verbose_;
 }
 
 
