@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
+#include <iomanip>
 #include <libconfig.h++>
 #include "controller.h"
 
@@ -116,10 +117,11 @@ void Controller::slew(CookedAngle targetAngle)
       motor->turnOnDirNegative();
    
    beginMotorMonitoring(initialAngle);
+   std::cout << std::fixed << std::setprecision(1);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
-      std::cout << "angle " << UserAngle(angle).val << std::endl;
+      std::cout << "\r\033[Kangle = " << UserAngle(angle).val << std::flush;
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
       
@@ -142,17 +144,18 @@ void Controller::slew(CookedAngle targetAngle)
       MotorStatus status = checkMotor(angle, direction);
       if (status == MotorStatus::Stalled)
       {
-         std::cerr << "Stall detected!\n";
+         std::cerr << "\nStall detected!\n";
          break;
       }
       else if (status == MotorStatus::WrongDirection)
       {
-         std::cerr << "Motor turning in wrong direction!\n";
+         std::cerr << "\nMotor turning in wrong direction!\n";
          break;
       }
 
       std::this_thread::sleep_for(params.loopDelay);
    }
+   std::cout << std::endl;
    
    motor->turnOff();
 }
