@@ -75,6 +75,10 @@ public:
    static void setLinearization(const std::vector<float>& coefficients);
    static void setOrigin(const RawAngle origin);
    static void setInverted(const bool set);
+   static void setSafeLimits(const CookedAngle min, const CookedAngle max);
+   inline static CookedAngle getMinimum() { return minimumSafeAngle; };
+   inline static CookedAngle getMaximum() { return maximumSafeAngle; };
+   bool isSafe();
 
 private:
    static degrees linearize(degrees val);
@@ -83,6 +87,8 @@ private:
    static RawAngle hardwareOrigin;
    static degrees offset;
    static bool inverted;
+   static CookedAngle minimumSafeAngle;
+   static CookedAngle maximumSafeAngle;
 };
 
 
@@ -92,6 +98,7 @@ public:
    explicit UserAngle(degrees value) : Angle(value) {};
    explicit UserAngle(const CookedAngle cooked);
    static void setOrigin(const CookedAngle origin);
+   bool isSafe();
 
 private:
    static CookedAngle userOrigin;

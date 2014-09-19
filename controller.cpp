@@ -43,14 +43,15 @@ ControllerParams::ControllerParams(const char* filename)
    CookedAngle::setInverted(config.lookup("sensor.invert"));
    UserAngle::setOrigin(CookedAngle(config.lookup("angles.userOrigin_cooked")));
 
-   // angle parameters
-   minimumSafeAngle =
-      CookedAngle(config.lookup("movement.minSafeAngle_cooked"));
-   maximumSafeAngle =
-      CookedAngle(config.lookup("movement.maxSafeAngle_cooked"));
-   tolerance = config.lookup("movement.tolerance");
+   // minimum and maximum angles
+   auto minimumSafeAngle =
+      CookedAngle(config.lookup("angles.minSafeAngle_cooked"));
+   auto maximumSafeAngle =
+      CookedAngle(config.lookup("angles.maxSafeAngle_cooked"));
+   CookedAngle::setSafeLimits(minimumSafeAngle, maximumSafeAngle);
 
    // control loop parameters
+   tolerance = config.lookup("movement.tolerance");
    loopDelay = std::chrono::milliseconds(10);
 }
 
@@ -99,18 +100,6 @@ CookedAngle Controller::getCookedAngle()
 UserAngle Controller::getUserAngle()
 {
    return UserAngle(CookedAngle(sensor->getRawAngle()));
-}
-
-
-bool Controller::isValidAngle(CookedAngle angle)
-{
-   return (angle >= params.minimumSafeAngle) && (angle <= params.maximumSafeAngle);
-}
-
-
-bool Controller::isValidAngle(UserAngle angle)
-{
-   return isValidAngle(CookedAngle(angle));
 }
 
 

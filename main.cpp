@@ -10,15 +10,6 @@
 
 const char* configFilename = CONFIG_FILE_PATH "/mcontrol.conf";
 
-class TCLAPangleConstraint : public TCLAP::Constraint<degrees>
-{
-public:
-   std::string description() const { return "0 <= angle < 360"; }
-   std::string shortID() const { return "angle"; }
-   bool check(const degrees& value) const { return (value >= 0 && value < 360); }
-} angleConstraint;
-
-
 int main(int argc, char *argv[])
 {
    TCLAP::CmdLine cmd("Motor control");
@@ -27,7 +18,7 @@ int main(int argc, char *argv[])
    TCLAP::SwitchArg arg_queryCookedAngle("c", "cooked-angle", "Query cooked angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
    TCLAP::UnlabeledValueArg<degrees> arg_targetAngle(
-      "angle", "Slew to this angle", false, 0, &angleConstraint);
+      "angle", "Slew to this angle", false, 0, "target angle");
    
    auto xorArgs = std::vector<TCLAP::Arg*>{
       &arg_queryAngle,
@@ -76,7 +67,17 @@ int main(int argc, char *argv[])
 
    if (arg_targetAngle.isSet())
    {
-      auto targetAngle = UserAngle(arg_targetAngle.getValue());
+      UserAngle targetAngle(arg_targetAngle.getValue());
+      if (!targetAngle.isSafe())
+      {
+         std::cerr << "Target angle " << targetAngle.val
+                      << " is not within safe limits ("
+                      << UserAngle(CookedAngle::getMinimum()).val
+                      << " <= target angle <= "
+                      << UserAngle(CookedAngle::getMaximum()).val
+                      << ").\nNot performing the slew.\n";
+         exit(1);
+      }
       controller.slew(CookedAngle(targetAngle));
    }
    else

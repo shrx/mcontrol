@@ -52,6 +52,19 @@ degrees CookedAngle::linearize(degrees val)
 }
 
 
+void CookedAngle::setSafeLimits(const CookedAngle min, const CookedAngle max)
+{
+   minimumSafeAngle = min;
+   maximumSafeAngle = max;
+}
+
+
+bool CookedAngle::isSafe()
+{
+   return (val >= minimumSafeAngle.val) && (val <= maximumSafeAngle.val);
+}
+
+
 UserAngle::UserAngle(const CookedAngle cooked)
 {
    val = cooked.val - userOrigin.val;
@@ -63,8 +76,17 @@ void UserAngle::setOrigin(const CookedAngle origin)
    userOrigin = origin;
 }
 
+
+bool UserAngle::isSafe()
+{
+   return CookedAngle(*this).isSafe();
+}
+
+
 std::vector<float> CookedAngle::linCoeffs;
 RawAngle CookedAngle::hardwareOrigin = RawAngle(0);
 degrees CookedAngle::offset = 0;
 bool CookedAngle::inverted = false;
+CookedAngle CookedAngle::minimumSafeAngle{0};
+CookedAngle CookedAngle::maximumSafeAngle{360};
 CookedAngle UserAngle::userOrigin = CookedAngle(0);
