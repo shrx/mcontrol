@@ -1,2 +1,3 @@
-*.o
-mcontrol
+/*.o
+/mcontrol
+/build/
