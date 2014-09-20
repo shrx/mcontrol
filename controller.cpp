@@ -198,7 +198,7 @@ void Controller::slew(CookedAngle targetAngle)
          duty = params.maxDuty;
       }
 
-      motor->setPWM(round(duty));
+      motor->setPWM(duty);
 
       MotorStatus status = checkMotor(angle, direction);
       if (status == MotorStatus::Stalled)
