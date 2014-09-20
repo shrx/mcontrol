@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
-#include <iomanip>
+#include <string>
+#include <cstdio>
 #include <libconfig.h++>
 #include "controller.h"
 
@@ -117,13 +118,19 @@ void Controller::slew(CookedAngle targetAngle)
       motor->turnOnDirNegative();
 
    beginMotorMonitoring(initialAngle);
-   std::cout << std::fixed << std::setprecision(1);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
-      std::cout << "\r\033[Kangle = " << UserAngle(angle).val << std::flush;
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
+
+      const int progressBarLength = 30;
+      std::string progressBar(progressBarLength, '-');
+      int currentPosition = std::round(progressBarLength*diffInitial/(diffInitial + diffTarget));
+      currentPosition = std::min(std::max(currentPosition, 0), progressBarLength - 1);
+      progressBar[currentPosition] = '>';
+      printf("\r\033[K%6.1f degrees %s", UserAngle(angle).val, progressBar.c_str());
+      fflush(stdout);
 
       if (diffTarget < params.tolerance)
       {
