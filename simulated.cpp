@@ -89,7 +89,7 @@ void SimulatedMotor::event()
       auto currentTime = std::chrono::steady_clock::now();
       auto elapsedMin = duration_cast<duration<float,ratio<60,1>>>(currentTime - lastEvent).count();
       internalAngle += 360.0 * (rpm * elapsedMin * rotating);
-      
+
       {
          static assertTrigger t;
          if (t(internalAngle < minimum_angle))
@@ -112,7 +112,7 @@ void SimulatedMotor::event()
       if (internalAngle > maximum_angle)
          internalAngle = maximum_angle;
    }
-   
+
    lastEvent = std::chrono::steady_clock::now();
 }
 

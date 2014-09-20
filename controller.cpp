@@ -34,7 +34,7 @@ ControllerParams::ControllerParams(const char* filename)
       throw ConfigFileException("angles.linearization must be an array");
    if (linArray.getLength() % 2)
       throw ConfigFileException("angles.linearization must contain an even number of values");
-      
+
    std::vector<float> coeffs;
    for (int i = 0; i < linArray.getLength(); i++)
       coeffs.push_back(linArray[i]);
@@ -74,7 +74,7 @@ Controller::Controller(ControllerParams initialParams) :
       perror("wiringPiSPISetupWithMode");
       exit(2);
    }
-   
+
    motor = new HardwareMotor(4, 5, 1);
    sensor = new HardwareSensor;
 #else
@@ -115,7 +115,7 @@ void Controller::slew(CookedAngle targetAngle)
       motor->turnOnDirPositive();
    else
       motor->turnOnDirNegative();
-   
+
    beginMotorMonitoring(initialAngle);
    std::cout << std::fixed << std::setprecision(1);
    while (true)
@@ -124,7 +124,7 @@ void Controller::slew(CookedAngle targetAngle)
       std::cout << "\r\033[Kangle = " << UserAngle(angle).val << std::flush;
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
-      
+
       if (diffTarget < params.tolerance)
       {
          motor->setPWM(0);
@@ -138,7 +138,7 @@ void Controller::slew(CookedAngle targetAngle)
          duty = params.minDuty;
       else if (duty > params.maxDuty)
          duty = params.maxDuty;
-      
+
       motor->setPWM(round(duty));
 
       MotorStatus status = checkMotor(angle, direction);
@@ -156,7 +156,7 @@ void Controller::slew(CookedAngle targetAngle)
       std::this_thread::sleep_for(params.loopDelay);
    }
    std::cout << std::endl;
-   
+
    motor->turnOff();
 }
 

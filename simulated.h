@@ -24,7 +24,7 @@ private:
    degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
    bool verbose = false;
-   
+
    const unsigned short minimum_duty = 15;
    const unsigned short maximum_duty = 30;
    const degrees initialAngle = 250;

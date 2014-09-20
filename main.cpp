@@ -13,13 +13,13 @@ const char* configFilename = CONFIG_FILE_PATH "/mcontrol.conf";
 int main(int argc, char *argv[])
 {
    TCLAP::CmdLine cmd("Motor control");
-   
+
    TCLAP::SwitchArg arg_queryAngle("q", "query-angle", "Query angle");
    TCLAP::SwitchArg arg_queryCookedAngle("c", "cooked-angle", "Query cooked angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
    TCLAP::UnlabeledValueArg<degrees> arg_targetAngle(
       "angle", "Slew to this angle", false, 0, "target angle");
-   
+
    auto xorArgs = std::vector<TCLAP::Arg*>{
       &arg_queryAngle,
       &arg_queryCookedAngle,
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
    cmd.xorAdd(xorArgs);
    cmd.parse(argc, argv);
-   
+
    ControllerParams cparams;
 
    try
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
          angle = controller.getCookedAngle().val;
       else
          angle = controller.getUserAngle().val;
-      
+
       std::cout << angle << std::endl;
    }
 

@@ -30,7 +30,7 @@ struct ControllerParams
    // movement parameters
    degrees accelAngle = 20.0;
    degrees tolerance = 0.1;
-   
+
    // control loop parameters
    std::chrono::milliseconds loopDelay{10};
 };
