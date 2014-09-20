@@ -40,16 +40,17 @@ class Controller
 {
 public:
    Controller(ControllerParams initialParams);
-   RawAngle getRawAngle();
-   CookedAngle getCookedAngle();
-   UserAngle getUserAngle();
+   RawAngle getRawAngle() const;
+   CookedAngle getCookedAngle() const;
+   UserAngle getUserAngle() const;
    void slew(CookedAngle targetAngle);
 
 private:
    enum class MotorStatus { OK, Stalled, WrongDirection };
 
-   void beginMotorMonitoring(CookedAngle currentAngle);
-   MotorStatus checkMotor(CookedAngle currentAngle, float wantedDirection);
+   void beginMotorMonitoring(const CookedAngle currentAngle);
+   MotorStatus checkMotor(const CookedAngle currentAngle,
+                          const float wantedDirection);
 
    ControllerParams params;
    Motor* motor;

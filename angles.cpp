@@ -59,7 +59,7 @@ void CookedAngle::setSafeLimits(const CookedAngle min, const CookedAngle max)
 }
 
 
-bool CookedAngle::isSafe()
+bool CookedAngle::isSafe() const
 {
    return (val >= minimumSafeAngle.val) && (val <= maximumSafeAngle.val);
 }
@@ -77,7 +77,7 @@ void UserAngle::setOrigin(const CookedAngle origin)
 }
 
 
-bool UserAngle::isSafe()
+bool UserAngle::isSafe() const
 {
    return CookedAngle(*this).isSafe();
 }

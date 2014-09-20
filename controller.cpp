@@ -89,19 +89,19 @@ Controller::Controller(ControllerParams initialParams) :
 }
 
 
-RawAngle Controller::getRawAngle()
+RawAngle Controller::getRawAngle() const
 {
    return sensor->getRawAngle();
 }
 
 
-CookedAngle Controller::getCookedAngle()
+CookedAngle Controller::getCookedAngle() const
 {
    return CookedAngle(sensor->getRawAngle());
 }
 
 
-UserAngle Controller::getUserAngle()
+UserAngle Controller::getUserAngle() const
 {
    return UserAngle(CookedAngle(sensor->getRawAngle()));
 }
@@ -260,13 +260,14 @@ void Controller::slew(CookedAngle targetAngle)
 }
 
 
-void Controller::beginMotorMonitoring(CookedAngle currentAngle)
+void Controller::beginMotorMonitoring(const CookedAngle currentAngle)
 {
    stallCheckAngle = currentAngle;
    stallCheckTime = std::chrono::steady_clock::now();
 }
 
-Controller::MotorStatus Controller::checkMotor(CookedAngle currentAngle, float wantedDirection)
+Controller::MotorStatus Controller::checkMotor(const CookedAngle currentAngle,
+                                               const float wantedDirection)
 {
    MotorStatus status = MotorStatus::OK;
 

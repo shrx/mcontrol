@@ -54,15 +54,15 @@ public:
    explicit Angle(degrees value) : val(value) {}
 
    // comparison operators
-   inline bool operator>(const DerivedAngle& other) { return val > other.val; }
-   inline bool operator<(const DerivedAngle& other) { return val < other.val; }
-   inline bool operator>=(const DerivedAngle& other) { return val >= other.val; }
-   inline bool operator<=(const DerivedAngle& other) { return val <= other.val; }
+   inline bool operator>(const DerivedAngle& other) const { return val > other.val; }
+   inline bool operator<(const DerivedAngle& other) const { return val < other.val; }
+   inline bool operator>=(const DerivedAngle& other) const { return val >= other.val; }
+   inline bool operator<=(const DerivedAngle& other) const { return val <= other.val; }
 
    // difference between two angles in degrees
-   inline degrees operator-(const DerivedAngle& other) { return val - other.val; }
+   inline degrees operator-(const DerivedAngle& other) const { return val - other.val; }
 
-   inline DerivedAngle operator+(const degrees& deg) { return DerivedAngle(val + deg); }
+   inline DerivedAngle operator+(const degrees& deg) const { return DerivedAngle(val + deg); }
 
    degrees val;
 };
@@ -80,7 +80,7 @@ public:
    static void setSafeLimits(const CookedAngle min, const CookedAngle max);
    inline static CookedAngle getMinimum() { return minimumSafeAngle; };
    inline static CookedAngle getMaximum() { return maximumSafeAngle; };
-   bool isSafe();
+   bool isSafe() const;
 
 private:
    static degrees linearize(degrees val);
@@ -100,7 +100,7 @@ public:
    explicit UserAngle(degrees value) : Angle(value) {};
    explicit UserAngle(const CookedAngle cooked);
    static void setOrigin(const CookedAngle origin);
-   bool isSafe();
+   bool isSafe() const;
 
 private:
    static CookedAngle userOrigin;
