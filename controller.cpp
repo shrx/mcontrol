@@ -111,10 +111,17 @@ class ProgressBar
 {
 public:
    ProgressBar(CookedAngle initial_, CookedAngle target_) :
-      initial(initial_), target(target_) {}
+      initial(initial_), target(target_),
+      previousPrint(std::chrono::steady_clock::now() - printPeriod)
+      {}
 
-   void print(CookedAngle angle)
+   void print(CookedAngle angle, bool forcePrint = false)
    {
+      auto now = std::chrono::steady_clock::now();
+      if (!forcePrint && now < previousPrint + printPeriod)
+         return;
+      previousPrint = now;
+
       std::string bar(length, '-');
       int position = std::round(length * (angle - initial)/(target - initial));
       position = std::min(std::max( position, 0), length - 1);
@@ -126,8 +133,14 @@ public:
 private:
    CookedAngle initial;
    CookedAngle target;
+   std::chrono::steady_clock::time_point previousPrint;
    static const int length = 30;
+   static constexpr std::chrono::milliseconds printPeriod{100};
 };
+
+// definitions for the above static consts
+const int ProgressBar::length;
+constexpr std::chrono::milliseconds ProgressBar::printPeriod;
 
 
 std::atomic_int timesInterrupted(0);
@@ -173,7 +186,11 @@ void Controller::slew(CookedAngle targetAngle)
       progressBar.print(angle);
 
       if (diffTarget < params.tolerance)
+      {
+         // Force printing of the final angle value.
+         progressBar.print(angle, true);
          break;
+      }
 
       float dutyInitial = (diffInitial / params.accelAngle) * dutySpan + params.minDuty;
       float dutyTarget = ((diffTarget - params.tolerance) / params.accelAngle) * dutySpan + params.minDuty;
