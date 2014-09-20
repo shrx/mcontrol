@@ -165,8 +165,6 @@ void Controller::slew(CookedAngle targetAngle)
    int interrupts = 0;
    signal(SIGINT, int_handler);
 
-   const float dutySpan = params.maxDuty - params.minDuty;
-
    CookedAngle initialAngle = getCookedAngle();
    float direction = (targetAngle.val > initialAngle.val ? 1.0 : -1.0);
 
@@ -182,7 +180,6 @@ void Controller::slew(CookedAngle targetAngle)
       CookedAngle angle = getCookedAngle();
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
-
       progressBar.print(angle);
 
       if (diffTarget < params.tolerance)
@@ -192,6 +189,7 @@ void Controller::slew(CookedAngle targetAngle)
          break;
       }
 
+      const float dutySpan = params.maxDuty - params.minDuty;
       float dutyInitial = (diffInitial / params.accelAngle) * dutySpan + params.minDuty;
       float dutyTarget = ((diffTarget - params.tolerance) / params.accelAngle) * dutySpan + params.minDuty;
       int duty;
