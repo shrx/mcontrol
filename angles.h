@@ -62,6 +62,8 @@ public:
    // difference between two angles in degrees
    inline degrees operator-(const DerivedAngle& other) { return val - other.val; }
 
+   inline DerivedAngle operator+(const degrees& deg) { return DerivedAngle(val + deg); }
+
    degrees val;
 };
 

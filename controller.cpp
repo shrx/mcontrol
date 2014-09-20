@@ -3,6 +3,8 @@
 #include <thread>
 #include <string>
 #include <cstdio>
+#include <atomic>
+#include <csignal>
 #include <libconfig.h++>
 #include "controller.h"
 
@@ -105,8 +107,51 @@ UserAngle Controller::getUserAngle()
 }
 
 
+class ProgressBar
+{
+public:
+   ProgressBar(CookedAngle initial_, CookedAngle target_) :
+      initial(initial_), target(target_) {}
+
+   void print(CookedAngle angle)
+   {
+      std::string bar(length, '-');
+      int position = std::round(length * (angle - initial)/(target - initial));
+      position = std::min(std::max( position, 0), length - 1);
+      bar[position] = '>';
+      printf("\r\033[K%6.1f degrees %s", UserAngle(angle).val, bar.c_str());
+      fflush(stdout);
+   }
+
+private:
+   CookedAngle initial;
+   CookedAngle target;
+   static const int length = 30;
+};
+
+
+std::atomic_int timesInterrupted(0);
+
+// SIGINT handler
+void int_handler(int sig)
+{
+   timesInterrupted++;
+   signal(SIGINT, int_handler);
+}
+
 void Controller::slew(CookedAngle targetAngle)
 {
+   enum class SlewPhase
+   {
+      accelerating,
+      plateau,
+      decelerating
+   };
+
+   SlewPhase phase = SlewPhase::accelerating;
+   int interrupts = 0;
+   signal(SIGINT, int_handler);
+
    const float dutySpan = params.maxDuty - params.minDuty;
 
    CookedAngle initialAngle = getCookedAngle();
@@ -118,33 +163,40 @@ void Controller::slew(CookedAngle targetAngle)
       motor->turnOnDirNegative();
 
    beginMotorMonitoring(initialAngle);
+   ProgressBar progressBar(initialAngle, targetAngle);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
 
-      const int progressBarLength = 30;
-      std::string progressBar(progressBarLength, '-');
-      int currentPosition = std::round(progressBarLength*diffInitial/(diffInitial + diffTarget));
-      currentPosition = std::min(std::max(currentPosition, 0), progressBarLength - 1);
-      progressBar[currentPosition] = '>';
-      printf("\r\033[K%6.1f degrees %s", UserAngle(angle).val, progressBar.c_str());
-      fflush(stdout);
+      progressBar.print(angle);
 
       if (diffTarget < params.tolerance)
-      {
-         motor->setPWM(0);
          break;
-      }
 
       float dutyInitial = (diffInitial / params.accelAngle) * dutySpan + params.minDuty;
       float dutyTarget = ((diffTarget - params.tolerance) / params.accelAngle) * dutySpan + params.minDuty;
-      int duty = round(std::fmin(dutyInitial, dutyTarget));
+      int duty;
+
+      if (dutyInitial <= dutyTarget)
+      {
+         phase = SlewPhase::accelerating;
+         duty = round(dutyInitial);
+      }
+      else
+      {
+         phase = SlewPhase::decelerating;
+         duty = round(dutyTarget);
+      }
+
       if (duty < params.minDuty)
          duty = params.minDuty;
       else if (duty > params.maxDuty)
+      {
+         phase = SlewPhase::plateau;
          duty = params.maxDuty;
+      }
 
       motor->setPWM(round(duty));
 
@@ -160,11 +212,36 @@ void Controller::slew(CookedAngle targetAngle)
          break;
       }
 
+      if (timesInterrupted > interrupts )
+      {
+         interrupts = timesInterrupted;
+         if (interrupts == 1)
+         {
+            std::cerr << "\nInterrupted, stopping gracefully. Give Ctrl+C again for immediate stop.\n";
+
+            if (phase == SlewPhase::accelerating)
+               targetAngle = angle + direction * diffInitial;
+            else if (phase == SlewPhase::plateau)
+               targetAngle = angle + direction * params.accelAngle;
+            // else if (phase == SlewPhase::decelerating)
+            //    Already decelerating - nothing to do.
+
+            // From now on, the progress bar only shows the progress of stopping.
+            progressBar = ProgressBar(angle, targetAngle);
+         }
+         else
+         {
+            std::cerr << "\nEmergency stop. Hold on to your gears!";
+            break;
+         }
+      }
       std::this_thread::sleep_for(params.loopDelay);
    }
    std::cout << std::endl;
 
+   motor->setPWM(0);
    motor->turnOff();
+   signal(SIGINT, SIG_DFL);
 }
 
 
