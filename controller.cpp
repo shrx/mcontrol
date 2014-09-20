@@ -192,7 +192,7 @@ void Controller::slew(CookedAngle targetAngle)
 
       if (duty < params.minDuty)
          duty = params.minDuty;
-      else if (duty > params.maxDuty)
+      else if (duty >= params.maxDuty)
       {
          phase = SlewPhase::plateau;
          duty = params.maxDuty;
