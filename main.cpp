@@ -15,14 +15,12 @@ int main(int argc, char *argv[])
    TCLAP::CmdLine cmd("Motor control");
 
    TCLAP::SwitchArg arg_queryAngle("q", "query-angle", "Query angle");
-   TCLAP::SwitchArg arg_queryCookedAngle("c", "cooked-angle", "Query cooked angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
    TCLAP::UnlabeledValueArg<degrees> arg_targetAngle(
       "angle", "Slew to this angle", false, 0, "target angle");
 
    auto xorArgs = std::vector<TCLAP::Arg*>{
       &arg_queryAngle,
-      &arg_queryCookedAngle,
       &arg_queryRawAngle,
       &arg_targetAngle};
 
@@ -85,8 +83,6 @@ int main(int argc, char *argv[])
       degrees angle;
       if (arg_queryRawAngle.isSet())
          angle = controller.getRawAngle().val;
-      else if (arg_queryCookedAngle.isSet())
-         angle = controller.getCookedAngle().val;
       else
          angle = controller.getUserAngle().val;
 
