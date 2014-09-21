@@ -7,12 +7,12 @@ class HardwareMotor : public Motor
 {
 public:
    HardwareMotor(int setPin1, int setPin2, int setPinPWM);
-   virtual void turnOff() const;
-   virtual void setPWM(unsigned short duty) const;
+   virtual void turnOff();
+   virtual void setPWM(unsigned short duty);
 
 protected:
-   virtual void turnOnDir1() const;
-   virtual void turnOnDir2() const;
+   virtual void turnOnDir1();
+   virtual void turnOnDir2();
 
    int pin1;
    int pin2;
@@ -23,7 +23,7 @@ protected:
 class HardwareSensor : public Sensor
 {
 public:
-   virtual RawAngle getRawAngle() const;
+   virtual RawAngle getRawAngle();
 };
 
 #endif // HARDWARE_H

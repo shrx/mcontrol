@@ -22,25 +22,25 @@ HardwareMotor::HardwareMotor(int setPin1, int setPin2, int setPinPWM) :
    pwmSetRange(100);
 }
 
-void HardwareMotor::turnOnDir1() const
+void HardwareMotor::turnOnDir1()
 {
    digitalWrite(pin2, LOW);
    digitalWrite(pin1, HIGH);
 }
 
-void HardwareMotor::turnOnDir2() const
+void HardwareMotor::turnOnDir2()
 {
    digitalWrite(pin1, LOW);
    digitalWrite(pin2, HIGH);
 }
 
-void HardwareMotor::turnOff() const
+void HardwareMotor::turnOff()
 {
    digitalWrite(pin1, LOW);
    digitalWrite(pin2, LOW);
 }
 
-void HardwareMotor::setPWM(unsigned short duty) const
+void HardwareMotor::setPWM(unsigned short duty)
 {
    pwmWrite(pinPWM, duty);
 }
@@ -83,7 +83,7 @@ uint16_t sendReceive(uint16_t command, bool verbose = false)
 }
 
 
-RawAngle HardwareSensor::getRawAngle() const
+RawAngle HardwareSensor::getRawAngle()
 {
    // Send a SPI request for angle data, ignoring the result as it belongs
    // to the previously issued command.
