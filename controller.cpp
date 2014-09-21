@@ -43,16 +43,32 @@ ControllerParams::ControllerParams(const char* filename)
       coeffs.push_back(linArray[i]);
 
    CookedAngle::setLinearization(coeffs);
-   CookedAngle::setOrigin(RawAngle(config.lookup("angles.hardwareOrigin_raw")));
-   CookedAngle::setInverted(config.lookup("sensor.invert"));
-   UserAngle::setOrigin(CookedAngle(config.lookup("angles.userOrigin_cooked")));
 
-   // minimum and maximum angles
-   auto minimumSafeAngle =
-      CookedAngle(config.lookup("angles.minSafeAngle_cooked"));
-   auto maximumSafeAngle =
-      CookedAngle(config.lookup("angles.maxSafeAngle_cooked"));
-   CookedAngle::setSafeLimits(minimumSafeAngle, maximumSafeAngle);
+   // Minimum and maximum raw angles.
+   // This also determines the orientation of the angle scale.
+   auto rawAngleAtMinimum =
+      RawAngle(config.lookup("angles.rawAngleAtMinimum"));
+   auto rawAngleAtMaximum =
+      RawAngle(config.lookup("angles.rawAngleAtMaximum"));
+   degrees positiveRange = mod360(rawAngleAtMaximum.val - rawAngleAtMinimum.val);
+   RawAngle halfRange(rawAngleAtMinimum + positiveRange/2.0);
+   if (positiveRange >= 180)
+   {
+      CookedAngle::setOrigin(halfRange + 180.0);
+      CookedAngle::setInverted(false);
+   }
+   else
+   {
+      CookedAngle::setOrigin(halfRange);
+      CookedAngle::setInverted(true);
+   }
+   degrees endGuard = config.lookup("angles.endGuard");
+   CookedAngle::setSafeLimits(CookedAngle(rawAngleAtMinimum) + endGuard,
+                              CookedAngle(rawAngleAtMaximum) - endGuard);
+
+   RawAngle userOriginPoint = RawAngle(config.lookup("angles.userOriginPoint"));
+   degrees userOriginValue = config.lookup("angles.userOriginValue");
+   UserAngle::setOrigin(CookedAngle(userOriginPoint) - userOriginValue);
 
    // control loop parameters
    tolerance = config.lookup("movement.tolerance");

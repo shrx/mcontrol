@@ -25,6 +25,8 @@ class UserAngle;
 
 typedef float degrees;
 
+degrees mod360(degrees value);
+
 /* RawAngle is not a subclass of Angle (declared below) because it does not
  * represent a true angle due to the possible nonlinearities in the
  * measurement. No arithmetic, then: just values.
@@ -35,6 +37,11 @@ class RawAngle
 public:
    explicit RawAngle(degrees value) : val(value) {}
    degrees val;
+
+   // RawAngle arithmetic should ensure that the result never goes outside the
+   // range [0:360).
+   inline RawAngle operator+(const degrees& deg) const
+      { return RawAngle(mod360(val + deg)); }
 };
 
 
@@ -63,6 +70,7 @@ public:
    inline degrees operator-(const DerivedAngle& other) const { return val - other.val; }
 
    inline DerivedAngle operator+(const degrees& deg) const { return DerivedAngle(val + deg); }
+   inline DerivedAngle operator-(const degrees& deg) const { return DerivedAngle(val - deg); }
 
    degrees val;
 };
@@ -108,7 +116,5 @@ private:
    // allow CookedAngle to access userOrigin
    friend class CookedAngle;
 };
-
-degrees mod360(degrees value);
 
 #endif // ANGLES_H
