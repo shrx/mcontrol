@@ -5,7 +5,7 @@ include(FindPkgConfig)
 pkg_check_modules(PKGCONFIG REQUIRED libconfig++)
 string(REPLACE ";" " " PKGCONFIG_CFLAGS "${PKGCONFIG_CFLAGS}")
 
-add_compile_options(-std=c++11 -Wall)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
 set(SOURCES interface.cpp simulated.cpp controller.cpp angles.cpp main.cpp)
 
@@ -16,7 +16,7 @@ set(EFFECTIVE_LDFLAGS "")
 
 if(HARDWARE)
    list(APPEND SOURCES hardware.cpp)
-   add_compile_options(${HARDWARE_CXXFLAGS})
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HARDWARE_CXXFLAGS}")
    list(APPEND EFFECTIVE_LDFLAGS ${HARDWARE_LDFLAGS})
    add_definitions(-DHARDWARE -DCONFIG_FILE_PATH=\"/etc\")
 else()
