@@ -141,6 +141,7 @@ public:
       std::string bar(length, '-');
       int position = std::round(length * (angle - initial)/(target - initial));
       position = std::min(std::max( position, 0), length - 1);
+      bar.replace (0,  position,  position, '=');
       bar[position] = '>';
       printf("\r\033[K%6.1f degrees %s", UserAngle(angle).val, bar.c_str());
       fflush(stdout);
