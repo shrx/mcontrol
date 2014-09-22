@@ -235,12 +235,12 @@ void Controller::slew(CookedAngle targetAngle)
       MotorStatus status = checkMotor(angle, direction);
       if (status == MotorStatus::Stalled)
       {
-         std::cerr << "\nStall detected!\n";
+         std::cerr << "\nStall detected!";
          break;
       }
       else if (status == MotorStatus::WrongDirection)
       {
-         std::cerr << "\nMotor turning in wrong direction!\n";
+         std::cerr << "\nMotor turning in wrong direction!";
          break;
       }
 
