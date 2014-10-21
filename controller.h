@@ -33,6 +33,7 @@ struct ControllerParams
 
    // control loop parameters
    std::chrono::milliseconds loopDelay{10};
+   enum class IndicatorStyle { Bar, Percent } indicatorStyle = IndicatorStyle::Bar;
 };
 
 

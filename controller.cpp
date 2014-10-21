@@ -123,13 +123,16 @@ UserAngle Controller::getUserAngle() const
 }
 
 
-class ProgressBar
+class ProgressIndicator
 {
 public:
-   ProgressBar(CookedAngle initial_, CookedAngle target_) :
-      initial(initial_), target(target_),
-      previousPrint(std::chrono::steady_clock::now() - printPeriod)
-      {}
+   ProgressIndicator(CookedAngle initial_, CookedAngle target_) :
+      initial(0), target(0)
+   {
+      reset(initial_, target_);
+   }
+
+   virtual ~ProgressIndicator() = default;
 
    void print(CookedAngle angle, bool forcePrint = false)
    {
@@ -137,7 +140,48 @@ public:
       if (!forcePrint && now < previousPrint + printPeriod)
          return;
       previousPrint = now;
+      printProgress(angle);
+   }
 
+   void reset(CookedAngle initial_, CookedAngle target_)
+   {
+      initial = initial_;
+      target = target_;
+      previousPrint = std::chrono::steady_clock::now() - printPeriod;
+   }
+
+   virtual void finalize() = 0;
+
+protected:
+   virtual void printProgress(CookedAngle angle) = 0;
+
+   CookedAngle initial;
+   CookedAngle target;
+   std::chrono::steady_clock::time_point previousPrint;
+
+   static const int length = 30;
+   static constexpr std::chrono::milliseconds printPeriod{100};
+};
+
+// definitions for the above static consts
+const int ProgressIndicator::length;
+constexpr std::chrono::milliseconds ProgressIndicator::printPeriod;
+
+
+class BarIndicator : public ProgressIndicator
+{
+public:
+   BarIndicator(CookedAngle initial_, CookedAngle target_) :
+      ProgressIndicator(initial_, target_) {}
+
+   virtual void finalize()
+   {
+      std::cout << std::endl;
+   }
+
+private:
+   virtual void printProgress(CookedAngle angle)
+   {
       std::string bar(length, '-');
       int position = std::round(length * (angle - initial)/(target - initial));
       position = std::min(std::max( position, 0), length - 1);
@@ -147,17 +191,24 @@ public:
       fflush(stdout);
    }
 
-private:
-   CookedAngle initial;
-   CookedAngle target;
-   std::chrono::steady_clock::time_point previousPrint;
    static const int length = 30;
-   static constexpr std::chrono::milliseconds printPeriod{100};
 };
 
-// definitions for the above static consts
-const int ProgressBar::length;
-constexpr std::chrono::milliseconds ProgressBar::printPeriod;
+
+class PercentIndicator : public ProgressIndicator
+{
+public:
+   PercentIndicator(CookedAngle initial_, CookedAngle target_) :
+      ProgressIndicator(initial_, target_) {}
+
+   virtual void finalize() {}
+
+private:
+   virtual void printProgress(CookedAngle angle)
+   {
+      printf("%d\n", (int)std::round(100 * (angle - initial)/(target - initial)));
+   }
+};
 
 
 std::atomic_int timesInterrupted(0);
@@ -190,19 +241,24 @@ void Controller::slew(CookedAngle targetAngle)
    else
       motor->turnOnDirNegative();
 
+   ProgressIndicator* progressIndicator;
+   if (params.indicatorStyle == ControllerParams::IndicatorStyle::Bar)
+      progressIndicator = new BarIndicator(initialAngle, targetAngle);
+   else
+      progressIndicator = new PercentIndicator(initialAngle, targetAngle);
+
    beginMotorMonitoring(initialAngle);
-   ProgressBar progressBar(initialAngle, targetAngle);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
       degrees diffInitial = direction * (angle - initialAngle);
       degrees diffTarget = direction * (targetAngle - angle);
-      progressBar.print(angle);
+      progressIndicator->print(angle);
 
       if (diffTarget < params.tolerance)
       {
          // Force printing of the final angle value.
-         progressBar.print(angle, true);
+         progressIndicator->print(angle, true);
          break;
       }
 
@@ -259,7 +315,7 @@ void Controller::slew(CookedAngle targetAngle)
             //    Already decelerating - nothing to do.
 
             // From now on, the progress bar only shows the progress of stopping.
-            progressBar = ProgressBar(angle, targetAngle);
+            progressIndicator->reset(angle, targetAngle);
          }
          else
          {
@@ -269,7 +325,8 @@ void Controller::slew(CookedAngle targetAngle)
       }
       std::this_thread::sleep_for(params.loopDelay);
    }
-   std::cout << std::endl;
+   progressIndicator->finalize();
+   delete progressIndicator;
 
    motor->setPWM(0);
    motor->turnOff();

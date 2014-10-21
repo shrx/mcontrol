@@ -25,6 +25,10 @@ int main(int argc, char *argv[])
       &arg_targetAngle};
 
    cmd.xorAdd(xorArgs);
+
+   TCLAP::SwitchArg arg_percentOutput("p", "percent", "Show slew progress in percent");
+   cmd.add(arg_percentOutput);
+
    cmd.parse(argc, argv);
 
    ControllerParams cparams;
@@ -32,6 +36,8 @@ int main(int argc, char *argv[])
    try
    {
       cparams = ControllerParams(configFilename);
+      if (arg_percentOutput.isSet())
+         cparams.indicatorStyle = ControllerParams::IndicatorStyle::Percent;
    }
    catch (libconfig::FileIOException& e)
    {
