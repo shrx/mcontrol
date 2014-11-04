@@ -26,6 +26,8 @@ struct ControllerParams
    bool invertMotorPolarity = false;
    std::chrono::milliseconds stallCheckPeriod{1000};
    degrees stallThreshold = 0;
+   unsigned short destallDuty = 0;
+   std::chrono::milliseconds destallDuration{0};
 
    // movement parameters
    degrees accelAngle = 20.0;
@@ -47,7 +49,7 @@ public:
    void slew(CookedAngle targetAngle);
 
 private:
-   enum class MotorStatus { OK, Stalled, WrongDirection };
+   enum class MotorStatus { Undetermined, OK, Stalled, WrongDirection };
 
    void beginMotorMonitoring(const CookedAngle currentAngle);
    MotorStatus checkMotor(const CookedAngle currentAngle,

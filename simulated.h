@@ -19,8 +19,9 @@ private:
    void turnOnDir2();
    void event();
 
-   int rotating = 0;
+   int engaged = 0;
    int duty = 0;
+   bool initialStall;
    degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
    bool verbose = false;
@@ -31,6 +32,9 @@ private:
    const degrees minimum_angle = 230;
    const degrees maximum_angle = minimum_angle + 360 - 40;
    const float rpm_capability = 10.0 / 6.0;
+
+   // stall simulation
+   const unsigned short stall_overcome_duty = 20;
 };
 
 class SimulatedSensor : public Sensor

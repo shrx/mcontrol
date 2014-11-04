@@ -30,6 +30,9 @@ ControllerParams::ControllerParams(const char* filename)
    stallCheckPeriod =
       std::chrono::milliseconds((unsigned int)config.lookup("motor.stallCheckPeriod"));
    stallThreshold = config.lookup("motor.stallThreshold");
+   destallDuty = (unsigned int)config.lookup("motor.destallDuty");
+   destallDuration =
+      std::chrono::milliseconds((unsigned int)config.lookup("motor.destallDuration"));
 
    // angle conversions
    libconfig::Setting& linArray = config.lookup("angles.linearization");
@@ -248,6 +251,7 @@ void Controller::slew(CookedAngle targetAngle)
       progressIndicator = new PercentIndicator(initialAngle, targetAngle);
 
    beginMotorMonitoring(initialAngle);
+   int initialStallsPermitted = (params.destallDuty > 0 ? 1 : 0);
    while (true)
    {
       CookedAngle angle = getCookedAngle();
@@ -291,13 +295,30 @@ void Controller::slew(CookedAngle targetAngle)
       MotorStatus status = checkMotor(angle, direction);
       if (status == MotorStatus::Stalled)
       {
-         std::cerr << "\nStall detected!";
-         break;
+         if (initialStallsPermitted > 0)
+         {
+            std::cerr << "\nInitial stall detected. Performing a de-stall maneuver.\n";
+            motor->setPWM(params.destallDuty);
+            std::this_thread::sleep_for(params.destallDuration);
+            motor->setPWM(duty);
+            initialStallsPermitted--;
+         }
+         else
+         {
+            std::cerr << "\nStall detected!";
+            break;
+         }
       }
       else if (status == MotorStatus::WrongDirection)
       {
          std::cerr << "\nMotor turning in wrong direction!";
          break;
+      }
+      else if (status == MotorStatus::OK)
+      {
+         // We are now certain that the motor is moving. If a stall occurs from
+         // now on, it is certainly not an initial stall.
+         initialStallsPermitted = 0;
       }
 
       if (timesInterrupted > interrupts )
@@ -343,7 +364,7 @@ void Controller::beginMotorMonitoring(const CookedAngle currentAngle)
 Controller::MotorStatus Controller::checkMotor(const CookedAngle currentAngle,
                                                const float wantedDirection)
 {
-   MotorStatus status = MotorStatus::OK;
+   MotorStatus status = MotorStatus::Undetermined;
 
    auto currentTime = std::chrono::steady_clock::now();
    if (currentTime >= stallCheckTime + params.stallCheckPeriod)
@@ -353,6 +374,8 @@ Controller::MotorStatus Controller::checkMotor(const CookedAngle currentAngle,
          status = MotorStatus::Stalled;
       else if (std::signbit(difference) != std::signbit(wantedDirection))
          status = MotorStatus::WrongDirection;
+      else
+         status = MotorStatus::OK;
 
       stallCheckAngle = currentAngle;
       stallCheckTime = currentTime;

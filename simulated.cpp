@@ -6,12 +6,13 @@
 SimulatedMotor::SimulatedMotor(degrees relativeInitialAngle)
 {
   internalAngle = initialAngle + relativeInitialAngle;
+  initialStall = true;
 }
 
 void SimulatedMotor::turnOnDir1()
 {
    event();
-   rotating = 1;
+   engaged = 1;
    if (verbose)
      std::cerr << "motor: Dir1\n";
 }
@@ -19,7 +20,7 @@ void SimulatedMotor::turnOnDir1()
 void SimulatedMotor::turnOnDir2()
 {
    event();
-   rotating = -1;
+   engaged = -1;
    if (verbose)
       std::cerr << "motor: Dir2\n";
 }
@@ -27,7 +28,8 @@ void SimulatedMotor::turnOnDir2()
 void SimulatedMotor::turnOff()
 {
    event();
-   rotating = 0;
+   engaged = 0;
+   initialStall = true;
    if (verbose)
       std::cerr << "motor: off\n";
 }
@@ -78,7 +80,10 @@ void SimulatedMotor::setPWM(unsigned short duty)
 
 void SimulatedMotor::event()
 {
-   if (rotating)
+   if (engaged && initialStall && (duty >= stall_overcome_duty))
+      initialStall = false;
+
+   if (engaged && !initialStall)
    {
       using std::chrono::duration_cast;
       using std::chrono::duration;
@@ -88,7 +93,7 @@ void SimulatedMotor::event()
       float rpm = rpm_capability * effectiveDuty;
       auto currentTime = std::chrono::steady_clock::now();
       auto elapsedMin = duration_cast<duration<float,ratio<60,1>>>(currentTime - lastEvent).count();
-      internalAngle += 360.0 * (rpm * elapsedMin * rotating);
+      internalAngle += 360.0 * (rpm * elapsedMin * engaged);
 
       {
          static assertTrigger t;
