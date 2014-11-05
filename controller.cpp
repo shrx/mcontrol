@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <atomic>
 #include <csignal>
+#include <list>
+#include <algorithm>
 #include <libconfig.h++>
 #include "controller.h"
 
@@ -116,13 +118,26 @@ RawAngle Controller::getRawAngle() const
 
 CookedAngle Controller::getCookedAngle() const
 {
-   return CookedAngle(sensor->getRawAngle());
+   std::list<CookedAngle> readouts;
+   const unsigned int numberOfReadouts = 5;
+
+   // Read a few consecutive values from the sensor.
+   for (unsigned int i = 0; i < numberOfReadouts; i++)
+      readouts.emplace_back(sensor->getRawAngle());
+
+   // Get rid of the minimum and maximum value, hopefully throwing out any
+   // erroneous readings.
+   readouts.erase(std::min_element(readouts.begin(), readouts.end()));
+   readouts.erase(std::max_element(readouts.begin(), readouts.end()));
+
+   // Of the remaining values, return the most recent one.
+   return readouts.back();
 }
 
 
 UserAngle Controller::getUserAngle() const
 {
-   return UserAngle(CookedAngle(sensor->getRawAngle()));
+   return UserAngle(getCookedAngle());
 }
 
 
