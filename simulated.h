@@ -47,6 +47,10 @@ private:
    SimulatedMotor* motor;
    std::mt19937_64 generator;
    std::normal_distribution<degrees> normdist{0.0, 0.1};
+   unsigned int numberOfReadouts = 0;
+
+   const unsigned int randomSpikePeriod = 0;
+   std::uniform_real_distribution<degrees> spikedist{0.0, 360.0};
 };
 
 #endif // SIMULATED_H

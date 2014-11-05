@@ -138,5 +138,12 @@ SimulatedSensor::SimulatedSensor(SimulatedMotor* driver) : motor(driver)
 
 RawAngle SimulatedSensor::getRawAngle()
 {
+   numberOfReadouts++;
+   if (randomSpikePeriod && (numberOfReadouts % randomSpikePeriod == 0))
+   {
+      // Return a completely random value every now and then.
+      return RawAngle(spikedist(generator));
+   }
+
    return RawAngle(mod360(motor->currentAngle() + normdist(generator)));
 }
