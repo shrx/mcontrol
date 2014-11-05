@@ -34,7 +34,7 @@ private:
    const float rpm_capability = 10.0 / 6.0;
 
    // stall simulation
-   const unsigned short stall_overcome_duty = 20;
+   const unsigned short stall_overcome_duty = 0;
 };
 
 class SimulatedSensor : public Sensor
