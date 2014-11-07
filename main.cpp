@@ -16,12 +16,14 @@ int main(int argc, char *argv[])
 
    TCLAP::SwitchArg arg_queryAngle("q", "query-angle", "Query angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
+   TCLAP::SwitchArg arg_park("", "park", "Slew to park position");
    TCLAP::UnlabeledValueArg<degrees> arg_targetAngle(
       "angle", "Slew to this angle", false, 0, "target angle");
 
    auto xorArgs = std::vector<TCLAP::Arg*>{
       &arg_queryAngle,
       &arg_queryRawAngle,
+      &arg_park,
       &arg_targetAngle};
 
    cmd.xorAdd(xorArgs);
@@ -83,6 +85,10 @@ int main(int argc, char *argv[])
          exit(1);
       }
       controller.slew(CookedAngle(targetAngle));
+   }
+   else if (arg_park.isSet())
+   {
+      controller.slew(cparams.parkPosition);
    }
    else
    {

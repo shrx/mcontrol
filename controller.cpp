@@ -74,6 +74,9 @@ ControllerParams::ControllerParams(const char* filename)
    RawAngle userOriginPoint = RawAngle(config.lookup("angles.userOriginPoint"));
    degrees userOriginValue = config.lookup("angles.userOriginValue");
    UserAngle::setOrigin(CookedAngle(userOriginPoint) - userOriginValue);
+   parkPosition = CookedAngle(RawAngle(config.lookup("movement.rawParkPosition")));
+   if (!parkPosition.isSafe())
+      throw ConfigFileException("park position is not within safe limits - please recheck");
 
    // control loop parameters
    tolerance = config.lookup("movement.tolerance");

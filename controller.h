@@ -30,6 +30,7 @@ struct ControllerParams
    std::chrono::milliseconds destallDuration{0};
 
    // movement parameters
+   CookedAngle parkPosition = CookedAngle(0);
    degrees accelAngle = 20.0;
    degrees tolerance = 0.1;
 
