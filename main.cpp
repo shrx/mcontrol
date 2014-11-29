@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <tclap/CmdLine.h>
+#include <cstdio>
+#include <unistd.h>
 #include <libconfig.h++>
 #include "controller.h"
 
@@ -28,7 +30,10 @@ int main(int argc, char *argv[])
 
    cmd.xorAdd(xorArgs);
 
-   TCLAP::SwitchArg arg_percentOutput("p", "percent", "Show slew progress in percent");
+   TCLAP::SwitchArg arg_percentOutput("p", "percent",
+      "Show slew progress by outputting lines with '<angle> <slew percent>' "
+      "(default when standard output is not a tty)."
+   );
    cmd.add(arg_percentOutput);
 
    cmd.parse(argc, argv);
@@ -38,7 +43,7 @@ int main(int argc, char *argv[])
    try
    {
       cparams = ControllerParams(configFilename);
-      if (arg_percentOutput.isSet())
+      if (arg_percentOutput.isSet() || !isatty(fileno(stdout)))
          cparams.indicatorStyle = ControllerParams::IndicatorStyle::Percent;
    }
    catch (libconfig::FileIOException& e)

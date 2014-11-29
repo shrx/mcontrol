@@ -227,7 +227,10 @@ public:
 private:
    virtual void printProgress(CookedAngle angle)
    {
-      printf("%d\n", (int)std::round(100 * (angle - initial)/(target - initial)));
+      printf("%.1f %d\n",
+             UserAngle(angle).val,
+             (int)std::round(100 * (angle - initial)/(target - initial)));
+      fflush(stdout);
    }
 };
 
