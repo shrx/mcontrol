@@ -97,7 +97,7 @@ uint16_t sendReceive(uint16_t command, bool verbose = false)
    wiringPiSPIDataRW(0, data, 2);
 
    if (verbose)
-   printf("received %02x%02x\n", data[0], data[1]);
+      printf("received %02x%02x\n", data[0], data[1]);
 
    return (data[0] << 8) + data[1];
 }

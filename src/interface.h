@@ -23,6 +23,7 @@
 
 #include "angles.h"
 
+// Abstract interface for a rotary encoder.
 class Sensor
 {
 public:
@@ -30,13 +31,22 @@ public:
 };
 
 
+// Abstract interface for a motor.
 class Motor
 {
 public:
+   // Set the motor direction to either positive or negative: the actual
+   // meaning of these depends on the implementation.
    void turnOnDirPositive();
    void turnOnDirNegative();
+
+   // Disconnect the motor from the power source.
    virtual void turnOff() = 0;
+
+   // Set the PWM duty cycle in percent.
    virtual void setPWM(unsigned short duty) = 0;
+
+   // Invert the polarity (sense of spinning) of the motor.
    void invertPolarity(bool invert);
 
 protected:

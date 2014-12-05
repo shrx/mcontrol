@@ -23,15 +23,36 @@
 
 #include "interface.h"
 
+/* Support for real hardware: an AS5048A Magnetic Rotary Encoder chip
+ * connected to the SPI bus and a motor connected to a two-relay one-transistor
+ * H-bridge. The two relays control the direction of the motor and the
+ * transistor serves to control the power via PWM.
+ *
+*/
 class HardwareMotor : public Motor
 {
 public:
+   /* Create a HardwareMotor instance.
+    *
+    * pin1: GPIO pin controlling relay1
+    * pin2: GPIO pin controlling relay2
+    * pinPWM: GPIO pin for pinPWM
+    *
+    * All pin nubers are according to the wiringPi library.
+   */
    HardwareMotor(int setPin1, int setPin2, int setPinPWM);
+
+   // Turn off both relays, cutting the power to the motor.
    virtual void turnOff();
+
+   // Set PWM duty cycle in percent.
    virtual void setPWM(unsigned short duty);
 
 protected:
+   // Spin the motor in direction 1 (hardware dependent).
    virtual void turnOnDir1();
+
+   // Spin the motor in direction 2 (hardware dependent).
    virtual void turnOnDir2();
 
    int pin1;

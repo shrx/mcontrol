@@ -25,6 +25,12 @@
 #include <random>
 #include "interface.h"
 
+/* A motor+axis simulator.
+ *
+ * This emulates a motor spinning an axis and exhibiting real-world
+ * characteristics such as initial stall and range limited by end switches.
+ * All error conditions are logged to stderr.
+*/
 class SimulatedMotor : public Motor
 {
 public:
@@ -32,15 +38,27 @@ public:
    void turnOff();
    void setPWM(unsigned short duty);
    degrees currentAngle();
+
+   // In verbose mode, the simulator reports various information (starts,
+   // stops, duty cycle changes etc.) to stderr. If set to false, the simulator
+   // will only report error conditions, such as the axis hitting an end switch.
    void setVerbose(bool verbose);
 
 private:
    void turnOnDir1();
    void turnOnDir2();
+
+   // The heart of the SimulatedMotor state machine: event() should be called
+   // just before any part of the motor state is modified. It updates the motor
+   // state according to the current parameters and the time elapsed since the
+   // previous event.
    void event();
 
+   // engaged: 0 when still, 1 or -1 when energized (depending on direction)
    int engaged = 0;
+   // PWM duty cycle
    int duty = 0;
+   // whether to simulate the initial stall
    bool initialStall;
    degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
@@ -53,10 +71,17 @@ private:
    const degrees maximum_angle = minimum_angle + 360 - 40;
    const float rpm_capability = 10.0 / 6.0;
 
-   // stall simulation
+   // If initial stall simulation is enabled, a PWM cycle of at least
+   // stall_overcome_duty will be needed for the motor to start moving.
+   // Once the motor overcomes the stall, the duty cycle can be lowered.
    const unsigned short stall_overcome_duty = 0;
 };
 
+
+/* The sensor simulator tries to emulate the characteristics of a real-world
+ * noisy signal: a normally distributed random value is added to the real
+ * angle value and a completely random spike is inserted every now and then.
+*/
 class SimulatedSensor : public Sensor
 {
 public:

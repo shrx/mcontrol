@@ -54,6 +54,10 @@ void SimulatedMotor::turnOff()
       std::cerr << "motor: off\n";
 }
 
+/* This class monitors a condition and prints a message when the condition
+ * changes from true to false. Useful for pointing out the exact moment at
+ * which an assertion is first violated, but keeping silent at all other times.
+*/
 class assertTrigger
 {
 public:
@@ -77,6 +81,7 @@ private:
 void SimulatedMotor::setPWM(unsigned short duty)
 {
    {
+      // Warn the user if the duty cycle exceeds the safe limit.
       static assertTrigger t;
       if (t(duty > maximum_duty))
          std::cerr << "motor: ERROR: duty cycle exceeds maximum ("
@@ -93,6 +98,7 @@ void SimulatedMotor::setPWM(unsigned short duty)
       std::cerr << "motor: PWM set to " << duty << "\n";
 
    {
+      // Report a stall when the duty cycle is too low.
       static assertTrigger t;
       t(duty > 0 && duty < minimum_duty, "motor: WARNING: stalled!\n");
    }
@@ -100,11 +106,15 @@ void SimulatedMotor::setPWM(unsigned short duty)
 
 void SimulatedMotor::event()
 {
+   // Check if we are in an initial stall and if yes, whether the current PWM
+   // duty cycle is large enough to put the motor out of it.
    if (engaged && initialStall && (duty >= stall_overcome_duty))
       initialStall = false;
 
    if (engaged && !initialStall)
    {
+      // Normal operation. Update the position according to the direction of
+      // spinning and the time elapsed since the previous event.
       using std::chrono::duration_cast;
       using std::chrono::duration;
       using std::ratio;
@@ -116,6 +126,7 @@ void SimulatedMotor::event()
       internalAngle += 360.0 * (rpm * elapsedMin * engaged);
 
       {
+         // Warn if the motor reached the lower end switch.
          static assertTrigger t;
          if (t(internalAngle < minimum_angle))
          {
@@ -123,17 +134,20 @@ void SimulatedMotor::event()
                       << internalAngle << " < " << minimum_angle << ")\n";
          }
       }
+      // Do not allow rotating past the end switch.
       if (internalAngle < minimum_angle)
          internalAngle = minimum_angle;
 
       {
-      static assertTrigger t;
+         // Warn if the motor reached the upper end switch.
+         static assertTrigger t;
          if (t(internalAngle > maximum_angle))
          {
             std::cerr << "motor: WARNING: safety switch engaged @ maximum ("
                       << internalAngle << " > " << maximum_angle << ")\n";
          }
       }
+      // Do not allow rotating past the end switch.
       if (internalAngle > maximum_angle)
          internalAngle = maximum_angle;
    }

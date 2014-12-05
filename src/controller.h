@@ -34,7 +34,10 @@ public:
    const std::string message;
 };
 
-
+/* Parameters that affect the operation of the controller. Runtime values of
+ * these parameters will be read from the configuration file (all of them are
+ * required to be explicitly set there).
+ */
 struct ControllerParams
 {
    ControllerParams() = default;
@@ -64,9 +67,13 @@ class Controller
 {
 public:
    Controller(ControllerParams initialParams);
+
+   // Methods for getting the current angle in various flavors.
    RawAngle getRawAngle() const;
    CookedAngle getCookedAngle() const;
    UserAngle getUserAngle() const;
+
+   // This is what it's all about.
    void slew(CookedAngle targetAngle);
 
 private:

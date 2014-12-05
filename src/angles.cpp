@@ -102,7 +102,7 @@ bool UserAngle::isSafe() const
    return CookedAngle(*this).isSafe();
 }
 
-
+// Definition of static class members.
 std::vector<float> CookedAngle::linCoeffs;
 RawAngle CookedAngle::hardwareOrigin = RawAngle(0);
 degrees CookedAngle::offset = 0;

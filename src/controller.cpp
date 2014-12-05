@@ -69,8 +69,13 @@ ControllerParams::ControllerParams(const char* filename)
 
    CookedAngle::setLinearization(coeffs);
 
-   // Minimum and maximum raw angles.
-   // This also determines the orientation of the angle scale.
+   /* Minimum and maximum raw angles.
+    *
+    * This also determines the orientation of the cooked angle scale: it is
+    * established in such a direction that when going from the minimum angle
+    * towards the maximum angle along the longest of the two possible paths,
+    * the cooked angles increase in value.
+   */
    auto rawAngleAtMinimum =
       RawAngle(config.lookup("angles.rawAngleAtMinimum"));
    auto rawAngleAtMaximum =
@@ -122,6 +127,9 @@ Controller::Controller(ControllerParams initialParams) :
       exit(2);
    }
 
+   // Eeek! Hardcoded magic numbers!!
+   // Seriously, if you came so far as to need this program, you are more
+   // than well equipped to know what to set these to.
    motor = new HardwareMotor(4, 5, 1);
    sensor = new HardwareSensor;
 #else
@@ -142,6 +150,7 @@ RawAngle Controller::getRawAngle() const
 CookedAngle Controller::getCookedAngle() const
 {
    std::list<CookedAngle> readouts;
+   // This parameter was deemed too obscure to be put in the config file.
    const unsigned int numberOfReadouts = 5;
 
    // Read a few consecutive values from the sensor.
@@ -164,6 +173,9 @@ UserAngle Controller::getUserAngle() const
 }
 
 
+/* An abstract progress indicator. It provides the core of a progress indicator
+ * that prints the current state at predetermined time intervals.
+*/
 class ProgressIndicator
 {
 public:
@@ -175,6 +187,8 @@ public:
 
    virtual ~ProgressIndicator() = default;
 
+   // Print the current progress if either enough time has elapsed from the
+   // previous printing or the forcePrint parameter is true.
    void print(CookedAngle angle, bool forcePrint = false)
    {
       auto now = std::chrono::steady_clock::now();
@@ -184,6 +198,7 @@ public:
       printProgress(angle);
    }
 
+   // Set new initial and target angles.
    void reset(CookedAngle initial_, CookedAngle target_)
    {
       initial = initial_;
@@ -191,9 +206,11 @@ public:
       previousPrint = std::chrono::steady_clock::now() - printPeriod;
    }
 
+   // Finalize the output (for example, by printing a final newline).
    virtual void finalize() = 0;
 
 protected:
+   // Do the actual printing.
    virtual void printProgress(CookedAngle angle) = 0;
 
    CookedAngle initial;
@@ -209,6 +226,7 @@ const int ProgressIndicator::length;
 constexpr std::chrono::milliseconds ProgressIndicator::printPeriod;
 
 
+// An ASCII progress bar.
 class BarIndicator : public ProgressIndicator
 {
 public:
@@ -232,10 +250,16 @@ private:
       fflush(stdout);
    }
 
+   // Length of the bar in characters.
    static const int length = 30;
 };
 
 
+/* An indicator with simple numeric output suitable for further processing.
+ * It outputs lines with the format:
+ *
+ * <current angle> <progress percent>
+*/
 class PercentIndicator : public ProgressIndicator
 {
 public:
@@ -255,6 +279,8 @@ private:
 };
 
 
+// The number of SIGINTs (Ctrl+C) received during the slew.
+// Helps us to estimate the user's panic level and act accordingly. :-)
 std::atomic_int timesInterrupted(0);
 
 // SIGINT handler
@@ -263,6 +289,11 @@ void int_handler(int sig)
    timesInterrupted++;
    signal(SIGINT, int_handler);
 }
+
+
+/*****************************
+**** THE MEAT OF THE STUFF ***
+******************************/
 
 void Controller::slew(CookedAngle targetAngle)
 {
@@ -274,9 +305,10 @@ void Controller::slew(CookedAngle targetAngle)
    };
 
    SlewPhase phase = SlewPhase::accelerating;
-   int interrupts = 0;
+   int interruptsHandled = 0;
    signal(SIGINT, int_handler);
 
+   // Determine which direction to turn and enage the H-bridge accordingly.
    CookedAngle initialAngle = getCookedAngle();
    float direction = (targetAngle.val > initialAngle.val ? 1.0 : -1.0);
 
@@ -285,14 +317,19 @@ void Controller::slew(CookedAngle targetAngle)
    else
       motor->turnOnDirNegative();
 
+   // Create a progress indicator.
    ProgressIndicator* progressIndicator;
    if (params.indicatorStyle == ControllerParams::IndicatorStyle::Bar)
       progressIndicator = new BarIndicator(initialAngle, targetAngle);
    else
       progressIndicator = new PercentIndicator(initialAngle, targetAngle);
 
+   // Start motor monitoring. This will take a record of the angle just before
+   // we apply power to the motor.
    beginMotorMonitoring(initialAngle);
    int initialStallsPermitted = (params.destallDuty > 0 ? 1 : 0);
+
+   // Main control loop.
    while (true)
    {
       CookedAngle angle = getCookedAngle();
@@ -302,11 +339,14 @@ void Controller::slew(CookedAngle targetAngle)
 
       if (diffTarget < params.tolerance)
       {
-         // Force printing of the final angle value.
+         // We are done. Force printing of the final angle value.
          progressIndicator->print(angle, true);
          break;
       }
 
+      // Now determine the slew phase that we are in and the needed PWM duty
+      // cycle. We do this by calculating the duties for both accelerating and
+      // decelerating and then taking the lower one.
       const float dutySpan = params.maxDuty - params.minDuty;
       float dutyInitial = (diffInitial / params.accelAngle) * dutySpan + params.minDuty;
       float dutyTarget = ((diffTarget - params.tolerance) / params.accelAngle) * dutySpan + params.minDuty;
@@ -323,16 +363,19 @@ void Controller::slew(CookedAngle targetAngle)
          duty = round(dutyTarget);
       }
 
+      // Clamp the duty cycle if it is outside the wanted range.
       if (duty < params.minDuty)
          duty = params.minDuty;
       else if (duty >= params.maxDuty)
       {
+         // Notice that for short slews, there can be no plateau.
          phase = SlewPhase::plateau;
          duty = params.maxDuty;
       }
 
       motor->setPWM(duty);
 
+      // Check on what the axis is actually doing.
       MotorStatus status = checkMotor(angle, direction);
       if (status == MotorStatus::Stalled)
       {
@@ -362,13 +405,16 @@ void Controller::slew(CookedAngle targetAngle)
          initialStallsPermitted = 0;
       }
 
-      if (timesInterrupted > interrupts )
+      // Check if the user's panic level has increased recently.
+      if (timesInterrupted > interruptsHandled )
       {
-         interrupts = timesInterrupted;
-         if (interrupts == 1)
+            interruptsHandled = timesInterrupted;
+         if (interruptsHandled == 1)
          {
             std::cerr << "\nInterrupted, stopping gracefully. Give Ctrl+C again for immediate stop.\n";
 
+            // Determine the closest target angle that we can reach by slowly
+            // decelerating.
             if (phase == SlewPhase::accelerating)
                targetAngle = angle + direction * diffInitial;
             else if (phase == SlewPhase::plateau)
@@ -376,7 +422,7 @@ void Controller::slew(CookedAngle targetAngle)
             // else if (phase == SlewPhase::decelerating)
             //    Already decelerating - nothing to do.
 
-            // From now on, the progress bar only shows the progress of stopping.
+            // From now on, the progress bar shows the progress of stopping.
             progressIndicator->reset(angle, targetAngle);
          }
          else
@@ -390,18 +436,27 @@ void Controller::slew(CookedAngle targetAngle)
    progressIndicator->finalize();
    delete progressIndicator;
 
+   // De-energize the motor and turn off the H-bridge switches.
    motor->setPWM(0);
    motor->turnOff();
    signal(SIGINT, SIG_DFL);
 }
 
 
+/* Records the current angle and the timestamp. This will later be used to tell
+ * if the motor is spinning or not.
+*/
 void Controller::beginMotorMonitoring(const CookedAngle currentAngle)
 {
    stallCheckAngle = currentAngle;
    stallCheckTime = std::chrono::steady_clock::now();
 }
 
+
+/* Checks if the angle readings are going in the direction that we expect them
+ * to go. If not, determines whether the motor is not moving at all or it is
+ * spinning in the wrong direction.
+*/
 Controller::MotorStatus Controller::checkMotor(const CookedAngle currentAngle,
                                                const float wantedDirection)
 {
@@ -412,12 +467,19 @@ Controller::MotorStatus Controller::checkMotor(const CookedAngle currentAngle,
    {
       auto difference = currentAngle - stallCheckAngle;
       if (abs(difference) < params.stallThreshold)
+      {
+         // No relevant change from when we last looked. This is a stall.
          status = MotorStatus::Stalled;
+      }
       else if (std::signbit(difference) != std::signbit(wantedDirection))
+      {
+         // The axis is spinning, but in the wrong direction.
          status = MotorStatus::WrongDirection;
+      }
       else
          status = MotorStatus::OK;
 
+      // Record the current state for later.
       stallCheckAngle = currentAngle;
       stallCheckTime = currentTime;
    }

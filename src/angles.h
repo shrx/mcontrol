@@ -102,10 +102,32 @@ public:
    explicit CookedAngle(degrees value) : Angle(value) {};
    explicit CookedAngle(const RawAngle raw);
    explicit CookedAngle(const UserAngle user);
+
+   /* Angle linearization.
+    * Linearization is performed according to the formula
+    *
+    * linearized = raw - k(1,1)*cos(1*raw) - k(1,2)*sin(1*raw)
+    *                  - k(2,1)*cos(2*raw) - k(2,2)*sin(2*raw)
+    *                  - ...
+    *
+    * The coefficients are stored in a vector in the order k(1,1), k(1,2),
+    * k(2,1), k(2,2), ...
+   */
    static void setLinearization(const std::vector<float>& coefficients);
+
+   // Set the origin of the cooked angle scale. This must be set somewhere
+   // within the range of raw values that will never be reached due to hardware
+   // restrictions.
    static void setOrigin(const RawAngle origin);
+
+   // Invert the sense of the cooked angles with respect to the raw angles
+   // (cooked angles increase when raw angles decrease and vice versa).
    static void setInverted(const bool set);
+
+   // Set safe slew limits.
    static void setSafeLimits(const CookedAngle min, const CookedAngle max);
+
+   // Report safe slew limits.
    inline static CookedAngle getMinimum() { return minimumSafeAngle; };
    inline static CookedAngle getMaximum() { return maximumSafeAngle; };
    bool isSafe() const;
@@ -127,7 +149,12 @@ class UserAngle : public Angle<UserAngle>
 public:
    explicit UserAngle(degrees value) : Angle(value) {};
    explicit UserAngle(const CookedAngle cooked);
+
+   // Set the origin of the user scale, i.e., the point where the user scale
+   // will read zero.
    static void setOrigin(const CookedAngle origin);
+
+   // Check whether this angle is within the safe slew zone.
    bool isSafe() const;
 
 private:

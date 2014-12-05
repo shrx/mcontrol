@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 {
    TCLAP::CmdLine cmd("Motor control");
 
+   // Specification of command line parameters.
    TCLAP::SwitchArg arg_queryAngle("q", "query-angle", "Query angle");
    TCLAP::SwitchArg arg_queryRawAngle("r", "raw-angle", "Query raw angle");
    TCLAP::SwitchArg arg_park("", "park", "Slew to park position");
@@ -56,10 +57,12 @@ int main(int argc, char *argv[])
    );
    cmd.add(arg_percentOutput);
 
+   // Parse the command line arguments.
    cmd.parse(argc, argv);
 
    ControllerParams cparams;
 
+   // Initialize the controller parameters from the configuration file.
    try
    {
       cparams = ControllerParams(configFilename);
@@ -94,10 +97,13 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
+   // Establish a controller with the parameters obtained above.
    Controller controller(cparams);
 
    if (arg_targetAngle.isSet())
    {
+      // A slew is requested. Test whether the angle is within the safe limits
+      // and perform the slew if everything seems OK.
       UserAngle targetAngle(arg_targetAngle.getValue());
       if (!targetAngle.isSafe())
       {
@@ -113,10 +119,15 @@ int main(int argc, char *argv[])
    }
    else if (arg_park.isSet())
    {
+      // A slew to the park position is requested. No need to test the safety
+      // of the park position as this was already done when reading the config
+      // file.
       controller.slew(cparams.parkPosition);
    }
    else
    {
+      // Only report the current axis angle (either raw angle or user angle,
+      // depending on the command line switches).
       degrees angle;
       if (arg_queryRawAngle.isSet())
          angle = controller.getRawAngle().val;
