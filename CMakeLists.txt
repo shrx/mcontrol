@@ -2,7 +2,7 @@ project(mcontrol)
 cmake_minimum_required(VERSION 2.8)
 include(FindPkgConfig)
 
-pkg_check_modules(PKGCONFIG REQUIRED libconfig++)
+pkg_check_modules(PKGCONFIG REQUIRED libconfig++ tclap)
 string(REPLACE ";" " " PKGCONFIG_CFLAGS "${PKGCONFIG_CFLAGS}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
