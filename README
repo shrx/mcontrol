@@ -51,13 +51,20 @@ SOFTWARE REQUIREMENTS
 
 mcontrol requires the following libraries:
 
-libconfig++ (http://www.hyperrealm.com/libconfig/)
-TCLAP (http://tclap.sourceforge.net)
+* libconfig++ (http://www.hyperrealm.com/libconfig/)
+* TCLAP (http://tclap.sourceforge.net)
 
 For controlling the actual hardware (as opposed to the simulator), the
 following library is additionally needed:
 
-WiringPi (http://wiringpi.com/)
+* WiringPi (http://wiringpi.com/)
+
+NOTE: mcontrol currently requires a patched version of the WiringPi library
+(the official version does not allow one to explicitly set the SPI mode and
+is thus unfit for communication with the AS5048A sensor). The required patch
+can be found in the extras/ directory; it applies on top of commit
+0a9fdeb29d31609ef834f050bdb8a7a65cd35e2b from the WiringPi git repository.
+Efforts are underway to incorporate the change into the official library.
 
 
 INSTALLATION
