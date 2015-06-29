@@ -33,6 +33,7 @@
 #ifdef HARDWARE
    #include <wiringPi.h>
    #include <wiringPiSPI.h>
+   #include <linux/spi/spidev.h>
    #include "hardware.h"
 #else
    #include "simulated.h"
@@ -120,10 +121,10 @@ Controller::Controller(ControllerParams initialParams) :
       exit(2);
    }
 
-   int fd = wiringPiSPISetupWithMode(0, 500000, SPI_MODE_1);
+   int fd = wiringPiSPISetupMode(0, 500000, SPI_MODE_1);
    if (fd == -1)
    {
-      perror("wiringPiSPISetupWithMode");
+      perror("wiringPiSPISetupMode");
       exit(2);
    }
 
