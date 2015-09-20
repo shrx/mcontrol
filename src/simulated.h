@@ -54,12 +54,17 @@ private:
    // previous event.
    void event();
 
+   // A helper method to check if we are in an initial stall.
+   bool initialStall();
+
    // engaged: 0 when still, 1 or -1 when energized (depending on direction)
    int engaged = 0;
    // PWM duty cycle
    int duty = 0;
-   // whether to simulate the initial stall
-   bool initialStall;
+   // How many destall maneuvers need to be performed to finally move the motor.
+   int initialStalls = 0;
+   // How many destall maneuvers we already noticed.
+   int destallTries = 0;
    degrees internalAngle;
    std::chrono::steady_clock::time_point lastEvent;
    bool verbose = false;
@@ -74,7 +79,7 @@ private:
    // If initial stall simulation is enabled, a PWM cycle of at least
    // stall_overcome_duty will be needed for the motor to start moving.
    // Once the motor overcomes the stall, the duty cycle can be lowered.
-   const unsigned short stall_overcome_duty = 0;
+   const unsigned short stall_overcome_duty = 20;
 };
 
 

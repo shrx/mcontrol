@@ -26,7 +26,6 @@
 SimulatedMotor::SimulatedMotor(degrees relativeInitialAngle)
 {
   internalAngle = initialAngle + relativeInitialAngle;
-  initialStall = true;
 }
 
 void SimulatedMotor::turnOnDir1()
@@ -49,7 +48,7 @@ void SimulatedMotor::turnOff()
 {
    event();
    engaged = 0;
-   initialStall = true;
+   destallTries = 0;
    if (verbose)
       std::cerr << "motor: off\n";
 }
@@ -104,14 +103,21 @@ void SimulatedMotor::setPWM(unsigned short duty)
    }
 }
 
+bool SimulatedMotor::initialStall()
+{
+   return destallTries < initialStalls;
+}
+
+
 void SimulatedMotor::event()
 {
-   // Check if we are in an initial stall and if yes, whether the current PWM
-   // duty cycle is large enough to put the motor out of it.
-   if (engaged && initialStall && (duty >= stall_overcome_duty))
-      initialStall = false;
+   // Check if we are in an initial stall. If yes, a certain PWM duty cycle
+   // threshold (stall_overcome_duty) needs to be exceeded a certain number of
+   // times (initialStalls) to unblock the motor.
+   if (engaged && initialStall() && (duty >= stall_overcome_duty))
+      destallTries++;
 
-   if (engaged && !initialStall)
+   if (engaged && !initialStall())
    {
       // Normal operation. Update the position according to the direction of
       // spinning and the time elapsed since the previous event.
