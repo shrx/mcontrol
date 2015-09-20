@@ -51,6 +51,7 @@ struct ControllerParams
    degrees stallThreshold = 0;
    unsigned short destallDuty = 0;
    std::chrono::milliseconds destallDuration{0};
+   unsigned short destallTries = 0;
 
    // movement parameters
    CookedAngle parkPosition = CookedAngle(0);

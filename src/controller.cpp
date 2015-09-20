@@ -56,6 +56,7 @@ ControllerParams::ControllerParams(const char* filename)
    destallDuty = (unsigned int)config.lookup("motor.destallDuty");
    destallDuration =
       std::chrono::milliseconds((unsigned int)config.lookup("motor.destallDuration"));
+   destallTries = (unsigned int)config.lookup("motor.destallTries");
 
    // angle conversions
    libconfig::Setting& linArray = config.lookup("angles.linearization");
@@ -328,7 +329,7 @@ void Controller::slew(CookedAngle targetAngle)
    // Start motor monitoring. This will take a record of the angle just before
    // we apply power to the motor.
    beginMotorMonitoring(initialAngle);
-   int initialStallsPermitted = (params.destallDuty > 0 ? 1 : 0);
+   int initialStallsPermitted = params.destallTries;
 
    // Main control loop.
    while (true)
@@ -382,7 +383,9 @@ void Controller::slew(CookedAngle targetAngle)
       {
          if (initialStallsPermitted > 0)
          {
-            std::cerr << "\nInitial stall detected. Performing a de-stall maneuver.\n";
+            int destallTry = params.destallTries - initialStallsPermitted + 1;
+            std::cerr << "\nInitial stall detected. Performing a de-stall maneuver "
+                      << destallTry << "/" << params.destallTries << ".\n";
             motor->setPWM(params.destallDuty);
             std::this_thread::sleep_for(params.destallDuration);
             motor->setPWM(duty);
