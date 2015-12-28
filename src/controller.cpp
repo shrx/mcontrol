@@ -297,8 +297,10 @@ void int_handler(int sig)
 **** THE MEAT OF THE STUFF ***
 ******************************/
 
-void Controller::slew(CookedAngle targetAngle)
+ReturnValue Controller::slew(CookedAngle targetAngle)
 {
+   ReturnValue retval = ReturnValue::Success;
+
    enum class SlewPhase
    {
       accelerating,
@@ -394,12 +396,14 @@ void Controller::slew(CookedAngle targetAngle)
          else
          {
             std::cerr << "\nStall detected!";
+            retval = ReturnValue::Stall;
             break;
          }
       }
       else if (status == MotorStatus::WrongDirection)
       {
          std::cerr << "\nMotor turning in wrong direction!";
+         retval = ReturnValue::HardwareError;
          break;
       }
       else if (status == MotorStatus::OK)
@@ -412,10 +416,11 @@ void Controller::slew(CookedAngle targetAngle)
       // Check if the user's panic level has increased recently.
       if (timesInterrupted > interruptsHandled )
       {
-            interruptsHandled = timesInterrupted;
+         interruptsHandled = timesInterrupted;
          if (interruptsHandled == 1)
          {
             std::cerr << "\nInterrupted, stopping gracefully. Give Ctrl+C again for immediate stop.\n";
+            retval = ReturnValue::SlewNotFinished;
 
             // Determine the closest target angle that we can reach by slowly
             // decelerating.
@@ -432,6 +437,7 @@ void Controller::slew(CookedAngle targetAngle)
          else
          {
             std::cerr << "\nEmergency stop. Hold on to your gears!";
+            retval = ReturnValue::SlewNotFinished;
             break;
          }
       }
@@ -444,6 +450,7 @@ void Controller::slew(CookedAngle targetAngle)
    motor->setPWM(0);
    motor->turnOff();
    signal(SIGINT, SIG_DFL);
+   return retval;
 }
 
 

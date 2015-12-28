@@ -63,6 +63,14 @@ struct ControllerParams
    enum class IndicatorStyle { Bar, Percent } indicatorStyle = IndicatorStyle::Bar;
 };
 
+enum class ReturnValue
+{
+  Success = 0,
+  ConfigError = 1,
+  HardwareError = 2,
+  Stall = 3,
+  SlewNotFinished = 4
+};
 
 class Controller
 {
@@ -75,7 +83,7 @@ public:
    UserAngle getUserAngle() const;
 
    // This is what it's all about.
-   void slew(CookedAngle targetAngle);
+   ReturnValue slew(CookedAngle targetAngle);
 
 private:
    enum class MotorStatus { Undetermined, OK, Stalled, WrongDirection };
